@@ -1,4 +1,4 @@
-// api/index.js — Vercel serverless entry point
+// api/index.js
 require('dotenv').config();
 const express = require('express');
 const { createClient } = require('@libsql/client');
@@ -8,6 +8,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -17,7 +18,7 @@ const turso = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-// Initialize database table
+// Initialize database
 async function initDatabase() {
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
@@ -34,7 +35,10 @@ async function initDatabase() {
 initDatabase();
 
 // ─── Middleware ──────────────────────────────────────────
-app.use(cors({ origin: process.env.VERCEL_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({ 
+  origin: process.env.VERCEL_URL || 'http://localhost:3000', 
+  credentials: true 
+}));
 app.use(cookieParser());
 app.use(express.json());
 
@@ -53,12 +57,19 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // ─── Passport (Discord) ──────────────────────────────────
+const ALLOWED_IDS = (process.env.ALLOWED_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
+
 passport.use(new DiscordStrategy({
   clientID: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
   callbackURL: process.env.DISCORD_REDIRECT_URI,
   scope: ['identify'],
-}, (accessToken, refreshToken, profile, done) => done(null, profile)));
+}, (accessToken, refreshToken, profile, done) => {
+  if (!ALLOWED_IDS.includes(profile.id)) {
+    return done(null, false, { message: 'Unauthorized' });
+  }
+  return done(null, profile);
+}));
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
@@ -88,41 +99,72 @@ function authMiddleware(req, res, next) {
 }
 
 // ─── Helpers ─────────────────────────────────────────────
-const ALLOWED_IDS = (process.env.ALLOWED_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
-
 function getTehranDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
 }
 
-// ─── Routes ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  ROUTES — MUST BE DEFINED BEFORE STATIC FALLBACK
+// ═══════════════════════════════════════════════════════════
 
-// Discord OAuth
+// ─── Discord OAuth ──────────────────────────────────────
 app.get('/auth/discord', passport.authenticate('discord'));
 
 app.get('/auth/discord/callback',
-  passport.authenticate('discord', { failureRedirect: '/' }),
-  async (req, res) => {
+  passport.authenticate('discord', { failureRedirect: '/admin?error=discord_failed' }),
+  (req, res) => {
     const user = req.user;
-    if (!ALLOWED_IDS.includes(user?.id)) {
-      return res.redirect('/?error=unauthorized');
+    if (!user) {
+      return res.redirect('/admin?error=unauthorized');
     }
-    const token = generateToken({ id: user.id, username: user.username, avatar: user.avatar });
+    const token = generateToken({ 
+      id: user.id, 
+      username: user.username, 
+      avatar: user.avatar 
+    });
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
     });
-    res.redirect('/');
+    res.redirect('/admin');
   }
 );
 
-// API: get current user
+// ─── Password fallback login ────────────────────────────
+app.post('/auth/password', (req, res) => {
+  const { password } = req.body;
+  const expected = process.env.ADMIN_PASSWORD;
+  
+  if (!expected) {
+    return res.status(500).json({ error: 'Password auth not configured' });
+  }
+  
+  if (password === expected) {
+    // Generate a token for the password user
+    const token = jwt.sign(
+      { id: 'admin', username: 'admin', avatar: null },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.VERCEL === '1',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+    });
+    return res.json({ success: true });
+  }
+  
+  res.status(401).json({ error: 'Invalid password' });
+});
+
+// ─── API Routes ──────────────────────────────────────────
 app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
-// API: get all statuses (with daily reset)
 app.get('/api/statuses', authMiddleware, async (req, res) => {
   const today = getTehranDate();
   const result = await turso.execute({
@@ -138,14 +180,12 @@ app.get('/api/statuses', authMiddleware, async (req, res) => {
       date: row.date,
     };
   }
-  // Return empty for missing keys
   ['caffeine', 'activity', 'mood'].forEach(k => {
     if (!statuses[k]) statuses[k] = null;
   });
   res.json({ statuses });
 });
 
-// API: set a status
 app.post('/api/status', authMiddleware, async (req, res) => {
   const { key, value, display } = req.body;
   if (!['caffeine', 'activity', 'mood'].includes(key)) {
@@ -159,11 +199,9 @@ app.post('/api/status', authMiddleware, async (req, res) => {
           ON CONFLICT(key, date) DO UPDATE SET value = ?, display = ?, timestamp = ?`,
     args: [key, value, display || value, timestamp, today, value, display || value, timestamp],
   });
-  const status = { value, display: display || value, timestamp, date: today };
-  res.json({ success: true, status });
+  res.json({ success: true, status: { value, display: display || value, timestamp, date: today } });
 });
 
-// API: clear a status
 app.delete('/api/status', authMiddleware, async (req, res) => {
   const { key } = req.body;
   if (!['caffeine', 'activity', 'mood'].includes(key)) {
@@ -177,18 +215,25 @@ app.delete('/api/status', authMiddleware, async (req, res) => {
   res.json({ success: true });
 });
 
-// API: logout
 app.post('/api/logout', authMiddleware, (req, res) => {
   res.clearCookie('auth_token');
   res.json({ success: true });
 });
 
-// ─── Serve frontend ──────────────────────────────────────
-const path = require('path');
+// ═══════════════════════════════════════════════════════════
+//  STATIC FILES — MUST COME AFTER API ROUTES
+// ═══════════════════════════════════════════════════════════
+
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Fallback: serve index.html for non-API routes (SPA support)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  // If the path starts with /admin, serve admin/index.html
+  if (req.path.startsWith('/admin')) {
+    return res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+  }
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // ─── Export for Vercel ──────────────────────────────────
