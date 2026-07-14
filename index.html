@@ -486,9 +486,9 @@
       box-shadow: 0 8px 20px var(--shadow);
       border-radius: 2px;
       position: relative;
+      text-align: center;
       transform: rotate(0.5deg);
       margin-top: 4px;
-      text-align: left;
     }
 
     .diary-folder::before {
@@ -511,7 +511,7 @@
       font-size: clamp(2rem, 4vw, 2.4rem);
       opacity: 0.4;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .diary-folder p {
@@ -522,6 +522,25 @@
 
     .diary-folder p strong {
       color: var(--ink);
+    }
+
+    .diary-folder .folder-tags {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .diary-folder .folder-tags span {
+      font-family: var(--font-mono);
+      font-size: clamp(0.5rem, 0.9vw, 0.6rem);
+      letter-spacing: 0.04em;
+      background: var(--tag-bg);
+      border: 1px solid var(--card-border);
+      padding: 1px 12px;
+      border-radius: 2px;
+      color: var(--ink-light);
     }
 
     /* ── Footer ── */
@@ -553,25 +572,6 @@
     .footer .links a:hover {
       color: var(--red-string);
       border-bottom-color: var(--red-string);
-    }
-
-    .footer .footer-tags {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-
-    .footer .footer-tags span {
-      font-family: var(--font-mono);
-      font-size: clamp(0.5rem, 0.9vw, 0.6rem);
-      letter-spacing: 0.04em;
-      background: var(--tag-bg);
-      border: 1px solid var(--card-border);
-      padding: 1px 12px;
-      border-radius: 2px;
-      color: var(--ink-light);
     }
 
     .footer .footer-note {
@@ -757,6 +757,11 @@
         <span class="big-icon">📖</span>
         <p><strong>Diary Entries</strong> · to be released</p>
         <p style="font-size:clamp(0.7rem, 1.2vw, 0.8rem); opacity:0.6;">— writing about systems, code, life —</p>
+        <div class="folder-tags">
+          <span>reflections</span>
+          <span>project logs</span>
+          <span>random thoughts</span>
+        </div>
       </div>
 
     </div>
@@ -769,11 +774,6 @@
         <a href="#" target="_blank">LinkedIn</a>
         <a href="#" target="_blank">Email</a>
         <a href="#" target="_blank">RSS</a>
-      </div>
-      <div class="footer-tags">
-        <span>reflections</span>
-        <span>project logs</span>
-        <span>random thoughts</span>
       </div>
       <div class="footer-note">
         Arsan's Archive · investigation board · case file 2026
@@ -979,6 +979,7 @@
     setInterval(updateRedString, 2000);
     setInterval(renderAll, 10000);
 
+    console.log('🕵️ Arsan\'s Archive · wavy red string connected');
   </script>
 
 </body>
