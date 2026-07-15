@@ -19,17 +19,22 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  await turso.execute(`
-    CREATE TABLE IF NOT EXISTS statuses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      key TEXT NOT NULL,
-      value TEXT,
-      display TEXT,
-      timestamp INTEGER,
-      date TEXT,
-      UNIQUE(key, date)
-    )
-  `);
+  try {
+    await turso.execute(`
+      CREATE TABLE IF NOT EXISTS statuses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        key TEXT NOT NULL,
+        value TEXT,
+        display TEXT,
+        timestamp INTEGER,
+        date TEXT,
+        UNIQUE(key, date)
+      )
+    `);
+    console.log('✅ Database initialized');
+  } catch (e) {
+    console.error('❌ Database init error:', e.message);
+  }
 }
 initDatabase();
 
@@ -103,7 +108,7 @@ function getTehranDate() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  IMPORTANT: ALL ROUTES MUST BE DEFINED BEFORE STATIC FILES
+//  ROUTES — ALL API ROUTES MUST COME BEFORE STATIC FILES
 // ════════════════════════════════════════════════════════════════
 
 // ─── Discord OAuth ──────────────────────────────────────
@@ -127,14 +132,17 @@ app.get('/auth/discord/callback',
 
 // ─── Password fallback login ────────────────────────────
 app.post('/auth/password', (req, res) => {
+  console.log('🔐 Password login attempt');
   const { password } = req.body;
   const expected = process.env.ADMIN_PASSWORD;
   
   if (!expected) {
+    console.error('❌ ADMIN_PASSWORD not set');
     return res.status(500).json({ error: 'Password auth not configured' });
   }
   
   if (password === expected) {
+    console.log('✅ Password login successful');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET,
@@ -149,6 +157,7 @@ app.post('/auth/password', (req, res) => {
     return res.json({ success: true });
   }
   
+  console.log('❌ Password login failed');
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -213,18 +222,22 @@ app.post('/api/logout', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES — MUST COME AFTER ALL ROUTES
+//  STATIC FILES — MUST BE THE VERY LAST THING
 // ════════════════════════════════════════════════════════════════
 
-// Serve static files
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
-// SPA fallback for admin
-app.get('/admin*', (req, res) => {
+// Admin SPA fallback
+app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
-// General fallback for main site
+app.get('/admin/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+});
+
+// Catch-all for main site
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
