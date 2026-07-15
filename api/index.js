@@ -42,6 +42,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ─── LOGGING MIDDLEWARE ──────────────────────────────────
+app.use((req, res, next) => {
+  console.log(`[Route] ${req.method} ${req.path}`);
+  next();
+});
+
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'dev-session-secret',
   resave: false,
@@ -58,10 +64,6 @@ app.use(passport.session());
 
 // ─── Passport (Discord) ──────────────────────────────────
 const ALLOWED_IDS = (process.env.ALLOWED_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
-
-if (!ALLOWED_IDS.length) {
-  console.warn('⚠️ No Discord IDs allowed — set ALLOWED_DISCORD_IDS');
-}
 
 passport.use(new DiscordStrategy({
   clientID: process.env.DISCORD_CLIENT_ID,
@@ -107,22 +109,6 @@ function getTehranDate() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  DEBUG ENDPOINT (also checks password match)
-// ════════════════════════════════════════════════════════════════
-app.get('/debug', (req, res) => {
-  const adminSet = !!process.env.ADMIN_PASSWORD;
-  const debugSet = !!process.env.DEBUG_PASSWORD;
-  res.json({
-    admin_password_set: adminSet,
-    debug_password_set: debugSet,
-    discord_client_set: !!process.env.DISCORD_CLIENT_ID,
-    env_keys: Object.keys(process.env).filter(k => 
-      k.startsWith('ADMIN') || k.startsWith('DEBUG') || k.startsWith('DISCORD') || k.startsWith('TURSO')
-    ),
-  });
-});
-
-// ════════════════════════════════════════════════════════════════
 //  ROUTES
 // ════════════════════════════════════════════════════════════════
 
@@ -145,39 +131,30 @@ app.get('/auth/discord/callback',
   }
 );
 
-// ─── Password fallback login (FIXED with logging) ──────
+// ─── Password fallback login ────────────────────────────
 app.post('/auth/password', (req, res) => {
-  const { password } = req.body;
-  
   console.log('[Auth] Password login attempt received');
+  console.log('[Auth] Body:', req.body);
   
-  // Get expected passwords from environment
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  const debugPassword = process.env.DEBUG_PASSWORD; // optional test password
+  const { password } = req.body;
+  const expectedPassword = process.env.ADMIN_PASSWORD;
   
-  console.log('[Auth] ADMIN_PASSWORD set?', !!adminPassword);
-  console.log('[Auth] DEBUG_PASSWORD set?', !!debugPassword);
+  console.log('[Auth] ADMIN_PASSWORD set?', !!expectedPassword);
   
-  if (!adminPassword && !debugPassword) {
-    console.error('[Auth] No password configured in environment!');
+  if (!expectedPassword) {
+    console.error('[Auth] ADMIN_PASSWORD not set!');
     return res.status(500).json({ 
-      error: 'Password authentication not configured. Set ADMIN_PASSWORD environment variable.' 
+      error: 'Password authentication not configured. ADMIN_PASSWORD environment variable is missing.' 
     });
   }
   
   const trimmedInput = (password || '').trim();
+  const trimmedExpected = expectedPassword.trim();
   
-  // Check against admin password
-  let match = false;
-  if (adminPassword && trimmedInput === adminPassword.trim()) {
-    match = true;
-  }
-  // Check against debug password (if set)
-  if (!match && debugPassword && trimmedInput === debugPassword.trim()) {
-    match = true;
-  }
+  console.log('[Auth] Input length:', trimmedInput.length);
+  console.log('[Auth] Expected length:', trimmedExpected.length);
   
-  if (match) {
+  if (trimmedInput === trimmedExpected) {
     console.log('[Auth] ✅ Password login successful');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
@@ -194,8 +171,6 @@ app.post('/auth/password', (req, res) => {
   }
   
   console.log('[Auth] ❌ Password login failed — incorrect password');
-  console.log('[Auth] Input length:', trimmedInput.length);
-  if (adminPassword) console.log('[Auth] Expected length:', adminPassword.trim().length);
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -260,7 +235,7 @@ app.post('/api/logout', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES
+//  STATIC FILES — these serve the admin and main site
 // ════════════════════════════════════════════════════════════════
 
 app.use(express.static(path.join(__dirname, '../public')));
