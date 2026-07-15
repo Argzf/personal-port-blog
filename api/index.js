@@ -107,6 +107,17 @@ function getTehranDate() {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  DEBUG ENDPOINT — remove in production
+// ════════════════════════════════════════════════════════════════
+app.get('/debug', (req, res) => {
+  res.json({
+    admin_password_set: !!process.env.ADMIN_PASSWORD,
+    discord_client_set: !!process.env.DISCORD_CLIENT_ID,
+    env_keys: Object.keys(process.env).filter(k => k.startsWith('ADMIN') || k.startsWith('DISCORD') || k.startsWith('TURSO')),
+  });
+});
+
+// ════════════════════════════════════════════════════════════════
 //  ROUTES
 // ════════════════════════════════════════════════════════════════
 
@@ -129,35 +140,29 @@ app.get('/auth/discord/callback',
   }
 );
 
-// ─── Password fallback login (FIXED) ────────────────────
+// ─── Password fallback login ────────────────────────────
 app.post('/auth/password', (req, res) => {
   const { password } = req.body;
   
-  // Log for debugging (without exposing the password)
-  console.log('[Auth] Password login attempt received');
-  console.log('[Auth] ADMIN_PASSWORD set:', !!process.env.ADMIN_PASSWORD);
+  console.log('[Auth] Password login attempt');
+  console.log('[Auth] ADMIN_PASSWORD set?', !!process.env.ADMIN_PASSWORD);
   
-  // Check if the environment variable is set
   const expectedPassword = process.env.ADMIN_PASSWORD;
+  
   if (!expectedPassword) {
-    console.error('[Auth] ADMIN_PASSWORD environment variable is not set!');
+    console.error('[Auth] ADMIN_PASSWORD not set in environment!');
     return res.status(500).json({ 
-      error: 'Password authentication is not configured. Please set ADMIN_PASSWORD in environment variables.' 
+      error: 'Password authentication not configured. ADMIN_PASSWORD environment variable is missing.' 
     });
   }
   
-  // Trim both passwords to avoid whitespace issues
-  const trimmedInput = password?.trim() || '';
+  const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
   
-  console.log('[Auth] Password comparison:', {
-    inputLength: trimmedInput.length,
-    expectedLength: trimmedExpected.length,
-  });
+  console.log('[Auth] Input length:', trimmedInput.length, 'Expected length:', trimmedExpected.length);
   
-  // Compare the trimmed passwords
   if (trimmedInput === trimmedExpected) {
-    console.log('[Auth] Password login successful');
+    console.log('[Auth] ✅ Password login successful');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET || 'dev-jwt-secret',
@@ -172,7 +177,7 @@ app.post('/auth/password', (req, res) => {
     return res.json({ success: true });
   }
   
-  console.log('[Auth] Password login failed — incorrect password');
+  console.log('[Auth] ❌ Password login failed — incorrect password');
   res.status(401).json({ error: 'Invalid password' });
 });
 
