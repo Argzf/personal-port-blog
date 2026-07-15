@@ -782,7 +782,7 @@
 
   </div>
 
-  <script>
+<script>
     // ─── Dynamic Age (Tehran timezone) ───
     function calculateAge() {
       const birth = new Date('2012-05-10');
@@ -828,10 +828,8 @@
           const t = j / numPoints;
           const x = p1.x + dx * t;
           const y = p1.y + dy * t;
-          // perpendicular direction
           const perpX = -Math.sin(angle);
           const perpY = Math.cos(angle);
-          // sine wave offset
           const wave = Math.sin(t * waves * 2 * Math.PI) * amplitude;
           const px = x + perpX * wave;
           const py = y + perpY * wave;
@@ -871,11 +869,9 @@
         points.push({ x: cx, y: cy });
       });
 
-      // Draw wavy path
       const d = getWavyPath(points);
       path.setAttribute('d', d);
 
-      // Update dots at exact centers
       const dotKeys = ['a', 'b', 'c'];
       points.forEach((p, i) => {
         if (i < 3) {
@@ -893,43 +889,45 @@
       }
     }
 
-    // ─── Status logic (read-only, Tehran daily reset) ───
+    // ─── Status logic (fetch from API, display "ago" only) ───
+
+    let statuses = { caffeine: null, activity: null, mood: null };
+
     function now() { return new Date(); }
 
-    function getTehranDate(date) {
-      return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
-    }
-
     function formatTimeAgo(date) {
-      const diff = (now() - date) / 1000;
+      const diff = (Date.now() - date) / 1000;
       if (diff < 60) return 'just now';
       if (diff < 3600) { const m = Math.floor(diff / 60); return m + 'm' + (m > 1 ? 's' : '') + ' ago'; }
       if (diff < 86400) { const h = Math.floor(diff / 3600); return h + 'h' + (h > 1 ? 's' : '') + ' ago'; }
-      const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
+      const d = Math.floor(diff / 86400);
+      return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
 
-    function formatExact(date) {
-      return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
-
-    function getStatus(key) {
+    async function fetchStatuses() {
       try {
-        const raw = localStorage.getItem('arsan_corner_' + key);
-        if (!raw) return null;
-        const data = JSON.parse(raw);
-        data.timestamp = new Date(data.timestamp);
-        const storedDate = getTehranDate(data.timestamp);
-        const todayDate = getTehranDate(now());
-        if (storedDate !== todayDate) {
-          localStorage.removeItem('arsan_corner_' + key);
-          return null;
-        }
-        return data;
-      } catch { return null; }
+        const res = await fetch('/api/statuses', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch statuses');
+        const data = await res.json();
+        // data.statuses is { caffeine, activity, mood } each with value, display, timestamp, date
+        statuses = data.statuses || { caffeine: null, activity: null, mood: null };
+        renderStatuses();
+      } catch (e) {
+        console.warn('Could not fetch statuses, using fallback:', e);
+        // Optionally fall back to localStorage if API fails? Better to keep consistent.
+        // We'll just leave empty.
+      }
+    }
+
+    function renderStatuses() {
+      renderStatus('caffeine');
+      renderStatus('activity');
+      renderStatus('mood');
+      updateCaseAge();
     }
 
     function renderStatus(key) {
-      const data = getStatus(key);
+      const data = statuses[key];
       const displayEl = document.getElementById(key + 'Display');
       const metaEl = document.getElementById(key + 'Meta');
       if (!displayEl) return;
@@ -942,45 +940,45 @@
 
       displayEl.textContent = data.display || data.value;
       if (metaEl) {
-        metaEl.textContent = formatTimeAgo(data.timestamp) + ' · ' + formatExact(data.timestamp);
+        // Only show "ago" time, no exact date
+        const timestamp = new Date(data.timestamp);
+        metaEl.textContent = formatTimeAgo(timestamp);
       }
     }
 
-    function renderAll() {
-      renderStatus('caffeine');
-      renderStatus('activity');
-      renderStatus('mood');
+    // ─── Initial render and periodic refresh ───
+    async function init() {
+      await fetchStatuses();
+      // Update age and red string after first render
       updateCaseAge();
-      requestAnimationFrame(() => {
-        setTimeout(updateRedString, 50);
-      });
+      setTimeout(updateRedString, 100);
+      // Refresh statuses every 10 seconds
+      setInterval(async () => {
+        await fetchStatuses();
+        // Red string may need update if cards move (they shouldn't)
+        updateRedString();
+      }, 10000);
+      // Red string on resize
+      let resizeTimer;
+      function handleResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => updateRedString(), 150);
+      }
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', () => setTimeout(updateRedString, 300));
+
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => updateRedString());
+        const grid = document.getElementById('statusGrid');
+        if (grid) ro.observe(grid);
+      }
+      // Also update red string periodically
+      setInterval(updateRedString, 2000);
     }
 
-    // ─── Init ───
-    renderAll();
-
-    // Red string on resize + layout shifts
-    let resizeTimer;
-    function handleResize() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => updateRedString(), 150);
-    }
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => setTimeout(updateRedString, 300));
-
-    if (window.ResizeObserver) {
-      const ro = new ResizeObserver(() => updateRedString());
-      const grid = document.getElementById('statusGrid');
-      if (grid) ro.observe(grid);
-    }
-
-    setTimeout(updateRedString, 100);
-    setTimeout(updateRedString, 300);
-    setInterval(updateRedString, 2000);
-    setInterval(renderAll, 10000);
-
-    console.log('🕵️ Arsan\'s Archive · wavy red string connected');
-  </script>
+    init();
+    console.log('🕵️ Arsan\'s Archive · connected to API');
+</script>
 
 </body>
 </html>
