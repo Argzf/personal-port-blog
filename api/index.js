@@ -19,22 +19,17 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  try {
-    await turso.execute(`
-      CREATE TABLE IF NOT EXISTS statuses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT NOT NULL,
-        value TEXT,
-        display TEXT,
-        timestamp INTEGER,
-        date TEXT,
-        UNIQUE(key, date)
-      )
-    `);
-    console.log('✅ Database initialized');
-  } catch (e) {
-    console.error('❌ Database init error:', e.message);
-  }
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS statuses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT NOT NULL,
+      value TEXT,
+      display TEXT,
+      timestamp INTEGER,
+      date TEXT,
+      UNIQUE(key, date)
+    )
+  `);
 }
 initDatabase();
 
@@ -48,7 +43,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'dev-session-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -63,6 +58,10 @@ app.use(passport.session());
 
 // ─── Passport (Discord) ──────────────────────────────────
 const ALLOWED_IDS = (process.env.ALLOWED_DISCORD_IDS || '').split(',').map(id => id.trim()).filter(Boolean);
+
+if (!ALLOWED_IDS.length) {
+  console.warn('⚠️ No Discord IDs allowed — set ALLOWED_DISCORD_IDS');
+}
 
 passport.use(new DiscordStrategy({
   clientID: process.env.DISCORD_CLIENT_ID,
@@ -83,13 +82,13 @@ passport.deserializeUser((obj, done) => done(null, obj));
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, username: user.username, avatar: user.avatar },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'dev-jwt-secret',
     { expiresIn: '7d' }
   );
 }
 
 function verifyToken(token) {
-  try { return jwt.verify(token, process.env.JWT_SECRET); }
+  try { return jwt.verify(token, process.env.JWT_SECRET || 'dev-jwt-secret'); }
   catch { return null; }
 }
 
@@ -108,7 +107,7 @@ function getTehranDate() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  ROUTES — ALL API ROUTES MUST COME BEFORE STATIC FILES
+//  ROUTES
 // ════════════════════════════════════════════════════════════════
 
 // ─── Discord OAuth ──────────────────────────────────────
@@ -130,22 +129,38 @@ app.get('/auth/discord/callback',
   }
 );
 
-// ─── Password fallback login ────────────────────────────
+// ─── Password fallback login (FIXED) ────────────────────
 app.post('/auth/password', (req, res) => {
-  console.log('🔐 Password login attempt');
   const { password } = req.body;
-  const expected = process.env.ADMIN_PASSWORD;
   
-  if (!expected) {
-    console.error('❌ ADMIN_PASSWORD not set');
-    return res.status(500).json({ error: 'Password auth not configured' });
+  // Log for debugging (without exposing the password)
+  console.log('[Auth] Password login attempt received');
+  console.log('[Auth] ADMIN_PASSWORD set:', !!process.env.ADMIN_PASSWORD);
+  
+  // Check if the environment variable is set
+  const expectedPassword = process.env.ADMIN_PASSWORD;
+  if (!expectedPassword) {
+    console.error('[Auth] ADMIN_PASSWORD environment variable is not set!');
+    return res.status(500).json({ 
+      error: 'Password authentication is not configured. Please set ADMIN_PASSWORD in environment variables.' 
+    });
   }
   
-  if (password === expected) {
-    console.log('✅ Password login successful');
+  // Trim both passwords to avoid whitespace issues
+  const trimmedInput = password?.trim() || '';
+  const trimmedExpected = expectedPassword.trim();
+  
+  console.log('[Auth] Password comparison:', {
+    inputLength: trimmedInput.length,
+    expectedLength: trimmedExpected.length,
+  });
+  
+  // Compare the trimmed passwords
+  if (trimmedInput === trimmedExpected) {
+    console.log('[Auth] Password login successful');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'dev-jwt-secret',
       { expiresIn: '7d' }
     );
     res.cookie('auth_token', token, {
@@ -157,7 +172,7 @@ app.post('/auth/password', (req, res) => {
     return res.json({ success: true });
   }
   
-  console.log('❌ Password login failed');
+  console.log('[Auth] Password login failed — incorrect password');
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -222,22 +237,15 @@ app.post('/api/logout', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES — MUST BE THE VERY LAST THING
+//  STATIC FILES
 // ════════════════════════════════════════════════════════════════
 
-// Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Admin SPA fallback
-app.get('/admin', (req, res) => {
+app.get('/admin*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
-app.get('/admin/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/admin/index.html'));
-});
-
-// Catch-all for main site
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
