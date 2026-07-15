@@ -19,6 +19,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
+  // Statuses table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,14 +33,11 @@ async function initDatabase() {
     )
   `);
   
-  // Migration: add is_custom column if it doesn't exist
   try {
     await turso.execute(`ALTER TABLE statuses ADD COLUMN is_custom INTEGER DEFAULT 0`);
-  } catch (e) {
-    // Column already exists — ignore
-  }
-  
-  // Create custom_exhibits table
+  } catch (e) {}
+
+  // Custom exhibits table (stores definitions for ALL exhibits)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS custom_exhibits (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +48,28 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
+  
+  // Seed default exhibits
+  await seedDefaultExhibits();
 }
+
+async function seedDefaultExhibits() {
+  const defaults = [
+    { key: 'caffeine', label: 'caffeine', icon: '☕', options: JSON.stringify([{ value: 'tea', label: '🍵 Tea' }, { value: 'coffee', label: '☕ Coffee' }]) },
+    { key: 'activity', label: 'activity', icon: '👤', options: JSON.stringify([{ value: 'coding', label: '💻 Coding' }, { value: 'reading', label: '📖 Reading' }, { value: 'exploring', label: '🗺️ Exploring' }, { value: 'hiking', label: '🥾 Hiking' }, { value: 'writing', label: '✍️ Writing' }, { value: 'thinking', label: '🤔 Thinking' }, { value: 'resting', label: '😴 Resting' }]) },
+    { key: 'mood', label: 'mood', icon: '🎭', options: JSON.stringify([{ value: 'great', label: '😄 Great' }, { value: 'good', label: '🙂 Good' }, { value: 'okay', label: '😐 Okay' }, { value: 'meh', label: '😕 Meh' }, { value: 'bad', label: '😞 Bad' }]) },
+  ];
+  for (const def of defaults) {
+    const exists = await turso.execute({ sql: 'SELECT key FROM custom_exhibits WHERE key = ?', args: [def.key] });
+    if (exists.rows.length === 0) {
+      await turso.execute({
+        sql: 'INSERT INTO custom_exhibits (key, label, icon, options, created_at) VALUES (?, ?, ?, ?, ?)',
+        args: [def.key, def.label, def.icon, def.options, Date.now()],
+      });
+    }
+  }
+}
+
 initDatabase();
 
 // ─── Middleware ──────────────────────────────────────────
@@ -127,30 +146,6 @@ function getTehranDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
 }
 
-// ─── Default exhibits configuration ──────────────────────
-const DEFAULT_EXHIBITS = {
-  caffeine: { key: 'caffeine', label: 'caffeine', icon: '☕', options: [
-    { value: 'tea', label: '🍵 Tea' },
-    { value: 'coffee', label: '☕ Coffee' },
-  ]},
-  activity: { key: 'activity', label: 'activity', icon: '👤', options: [
-    { value: 'coding', label: '💻 Coding' },
-    { value: 'reading', label: '📖 Reading' },
-    { value: 'exploring', label: '🗺️ Exploring' },
-    { value: 'hiking', label: '🥾 Hiking' },
-    { value: 'writing', label: '✍️ Writing' },
-    { value: 'thinking', label: '🤔 Thinking' },
-    { value: 'resting', label: '😴 Resting' },
-  ]},
-  mood: { key: 'mood', label: 'mood', icon: '🎭', options: [
-    { value: 'great', label: '😄 Great' },
-    { value: 'good', label: '🙂 Good' },
-    { value: 'okay', label: '😐 Okay' },
-    { value: 'meh', label: '😕 Meh' },
-    { value: 'bad', label: '😞 Bad' },
-  ]},
-};
-
 // ════════════════════════════════════════════════════════════════
 //  ROUTES
 // ════════════════════════════════════════════════════════════════
@@ -178,14 +173,11 @@ app.get('/auth/discord/callback',
 app.post('/auth/password', (req, res) => {
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
-  
   if (!expectedPassword) {
     return res.status(500).json({ error: 'Password authentication not configured.' });
   }
-  
   const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
-  
   if (trimmedInput === trimmedExpected) {
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
@@ -200,7 +192,6 @@ app.post('/auth/password', (req, res) => {
     });
     return res.json({ success: true });
   }
-  
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -215,7 +206,6 @@ app.get('/api/statuses', authMiddleware, async (req, res) => {
     sql: 'SELECT key, value, display, timestamp, date, is_custom FROM statuses WHERE date = ?',
     args: [today],
   });
-  
   const statuses = {};
   for (const row of result.rows) {
     statuses[row.key] = {
@@ -226,23 +216,11 @@ app.get('/api/statuses', authMiddleware, async (req, res) => {
       is_custom: row.is_custom || 0,
     };
   }
-  
-  // Get custom exhibit definitions
-  const customDefs = await turso.execute('SELECT key, label, icon, options FROM custom_exhibits');
-  const customKeys = customDefs.rows.map(r => r.key);
-  
-  // Ensure all custom exhibits have entries in statuses (even if null)
-  for (const row of customDefs.rows) {
-    if (!statuses[row.key]) {
-      statuses[row.key] = null;
-    }
+  // Get all exhibit keys from custom_exhibits
+  const defs = await turso.execute('SELECT key FROM custom_exhibits');
+  for (const row of defs.rows) {
+    if (!statuses[row.key]) statuses[row.key] = null;
   }
-  
-  // Also include default keys
-  ['caffeine', 'activity', 'mood'].forEach(k => {
-    if (!statuses[k]) statuses[k] = null;
-  });
-  
   res.json({ statuses });
 });
 
@@ -253,17 +231,12 @@ app.get('/api/custom-exhibits', authMiddleware, async (req, res) => {
 
 app.post('/api/custom-exhibits', authMiddleware, async (req, res) => {
   const { key, label, icon, options } = req.body;
-  
   if (!key || !label) {
     return res.status(400).json({ error: 'Key and label are required' });
   }
-  
-  // Validate key format (alphanumeric and underscores only)
   if (!/^[a-zA-Z0-9_]+$/.test(key)) {
     return res.status(400).json({ error: 'Key can only contain letters, numbers, and underscores' });
   }
-  
-  // Check if key already exists
   const existing = await turso.execute({
     sql: 'SELECT key FROM custom_exhibits WHERE key = ?',
     args: [key],
@@ -271,104 +244,130 @@ app.post('/api/custom-exhibits', authMiddleware, async (req, res) => {
   if (existing.rows.length > 0) {
     return res.status(400).json({ error: 'An exhibit with this key already exists' });
   }
-  
-  // Check if it's a reserved default key
-  if (['caffeine', 'activity', 'mood'].includes(key)) {
-    return res.status(400).json({ error: 'This is a reserved key name' });
-  }
-  
   const optionsStr = options ? JSON.stringify(options) : '[]';
   const now = Date.now();
-  
   await turso.execute({
     sql: 'INSERT INTO custom_exhibits (key, label, icon, options, created_at) VALUES (?, ?, ?, ?, ?)',
     args: [key, label, icon || '📌', optionsStr, now],
   });
-  
   res.json({ success: true, exhibit: { key, label, icon: icon || '📌', options: options || [] } });
 });
 
 app.delete('/api/custom-exhibits/:key', authMiddleware, async (req, res) => {
   const { key } = req.params;
-  
-  // Don't allow deleting default exhibits
-  if (['caffeine', 'activity', 'mood'].includes(key)) {
+  const isDefault = ['caffeine', 'activity', 'mood'].includes(key);
+  if (isDefault) {
     return res.status(400).json({ error: 'Cannot delete default exhibits' });
   }
-  
-  // Delete from custom_exhibits
   await turso.execute({
     sql: 'DELETE FROM custom_exhibits WHERE key = ?',
     args: [key],
   });
-  
-  // Delete all status entries for this key
   await turso.execute({
     sql: 'DELETE FROM statuses WHERE key = ?',
     args: [key],
   });
-  
   res.json({ success: true });
 });
 
+// ─── Option management ──────────────────────────────────
+app.put('/api/exhibits/:key/options', authMiddleware, async (req, res) => {
+  const { key } = req.params;
+  const { value, label } = req.body;
+  if (!value || !label) {
+    return res.status(400).json({ error: 'Value and label are required' });
+  }
+  // Get current options
+  const result = await turso.execute({
+    sql: 'SELECT options FROM custom_exhibits WHERE key = ?',
+    args: [key],
+  });
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'Exhibit not found' });
+  }
+  let options = [];
+  try {
+    options = JSON.parse(result.rows[0].options || '[]');
+  } catch { options = []; }
+  
+  // Check if value already exists
+  if (options.some(o => o.value === value)) {
+    return res.status(400).json({ error: 'Option already exists' });
+  }
+  
+  options.push({ value, label });
+  await turso.execute({
+    sql: 'UPDATE custom_exhibits SET options = ? WHERE key = ?',
+    args: [JSON.stringify(options), key],
+  });
+  res.json({ success: true, options });
+});
+
+app.delete('/api/exhibits/:key/options', authMiddleware, async (req, res) => {
+  const { key } = req.params;
+  const { value } = req.body;
+  if (!value) {
+    return res.status(400).json({ error: 'Value is required' });
+  }
+  const result = await turso.execute({
+    sql: 'SELECT options FROM custom_exhibits WHERE key = ?',
+    args: [key],
+  });
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'Exhibit not found' });
+  }
+  let options = [];
+  try {
+    options = JSON.parse(result.rows[0].options || '[]');
+  } catch { options = []; }
+  
+  const filtered = options.filter(o => o.value !== value);
+  if (filtered.length === options.length) {
+    return res.status(400).json({ error: 'Option not found' });
+  }
+  await turso.execute({
+    sql: 'UPDATE custom_exhibits SET options = ? WHERE key = ?',
+    args: [JSON.stringify(filtered), key],
+  });
+  res.json({ success: true, options: filtered });
+});
+
+// ─── Status set/clear ───────────────────────────────────
 app.post('/api/status', authMiddleware, async (req, res) => {
   const { key, value, display } = req.body;
-  
-  // Check if it's a valid key
-  const isDefault = ['caffeine', 'activity', 'mood'].includes(key);
-  let isCustom = false;
-  
-  if (!isDefault) {
-    const customCheck = await turso.execute({
-      sql: 'SELECT key FROM custom_exhibits WHERE key = ?',
-      args: [key],
-    });
-    isCustom = customCheck.rows.length > 0;
-  }
-  
-  if (!isDefault && !isCustom) {
+  const defCheck = await turso.execute({
+    sql: 'SELECT key FROM custom_exhibits WHERE key = ?',
+    args: [key],
+  });
+  if (defCheck.rows.length === 0) {
     return res.status(400).json({ error: 'Invalid status key' });
   }
-  
   const today = getTehranDate();
   const timestamp = Date.now();
-  const isCustomInt = isCustom ? 1 : 0;
-  
+  const isCustom = !['caffeine', 'activity', 'mood'].includes(key) ? 1 : 0;
   await turso.execute({
     sql: `INSERT INTO statuses (key, value, display, timestamp, date, is_custom)
           VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(key, date) DO UPDATE SET value = ?, display = ?, timestamp = ?`,
-    args: [key, value, display || value, timestamp, today, isCustomInt, value, display || value, timestamp],
+    args: [key, value, display || value, timestamp, today, isCustom, value, display || value, timestamp],
   });
-  
-  res.json({ success: true, status: { value, display: display || value, timestamp, date: today, is_custom: isCustomInt } });
+  res.json({ success: true, status: { value, display: display || value, timestamp, date: today, is_custom: isCustom } });
 });
 
 app.delete('/api/status', authMiddleware, async (req, res) => {
   const { key } = req.body;
-  
-  // Check if it's a valid key
-  const isDefault = ['caffeine', 'activity', 'mood'].includes(key);
-  let isCustom = false;
-  
-  if (!isDefault) {
-    const customCheck = await turso.execute({
-      sql: 'SELECT key FROM custom_exhibits WHERE key = ?',
-      args: [key],
-    });
-    isCustom = customCheck.rows.length > 0;
-  }
-  
-  if (!isDefault && !isCustom) {
+  const defCheck = await turso.execute({
+    sql: 'SELECT key FROM custom_exhibits WHERE key = ?',
+    args: [key],
+  });
+  if (defCheck.rows.length === 0) {
     return res.status(400).json({ error: 'Invalid status key' });
   }
-  
   const today = getTehranDate();
   await turso.execute({
     sql: 'DELETE FROM statuses WHERE key = ? AND date = ?',
     args: [key, today],
   });
-  
   res.json({ success: true });
 });
 
