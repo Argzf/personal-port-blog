@@ -42,9 +42,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── LOGGING MIDDLEWARE ──────────────────────────────────
+// ─── Logging middleware ──────────────────────────────────
 app.use((req, res, next) => {
-  console.log(`[Route] ${req.method} ${req.path}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
@@ -133,29 +133,23 @@ app.get('/auth/discord/callback',
 
 // ─── Password fallback login ────────────────────────────
 app.post('/auth/password', (req, res) => {
-  console.log('[Auth] Password login attempt received');
-  console.log('[Auth] Body:', req.body);
-  
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
   
+  console.log('[Auth] Password attempt');
   console.log('[Auth] ADMIN_PASSWORD set?', !!expectedPassword);
   
   if (!expectedPassword) {
-    console.error('[Auth] ADMIN_PASSWORD not set!');
     return res.status(500).json({ 
-      error: 'Password authentication not configured. ADMIN_PASSWORD environment variable is missing.' 
+      error: 'Password authentication not configured.' 
     });
   }
   
   const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
   
-  console.log('[Auth] Input length:', trimmedInput.length);
-  console.log('[Auth] Expected length:', trimmedExpected.length);
-  
   if (trimmedInput === trimmedExpected) {
-    console.log('[Auth] ✅ Password login successful');
+    console.log('[Auth] ✅ Success');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET || 'dev-jwt-secret',
@@ -170,7 +164,7 @@ app.post('/auth/password', (req, res) => {
     return res.json({ success: true });
   }
   
-  console.log('[Auth] ❌ Password login failed — incorrect password');
+  console.log('[Auth] ❌ Failed');
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -235,15 +229,22 @@ app.post('/api/logout', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES — these serve the admin and main site
+//  STATIC FILES — Express handles everything
 // ════════════════════════════════════════════════════════════════
 
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get('/admin*', (req, res) => {
+// Admin route
+app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
+app.get('/admin/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+});
+
+// Fallback: serve main site for any other route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
