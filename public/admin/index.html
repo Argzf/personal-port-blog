@@ -95,9 +95,6 @@
     .btn-danger:hover { background: var(--red); color: var(--bg); }
     .btn-block { display: block; width: 100%; text-align: center; }
     .btn-sm { font-size: 0.6rem; padding: 2px 10px; line-height: 1.6; }
-    .btn-xs { font-size: 0.55rem; padding: 1px 6px; line-height: 1.4; background: transparent; border: 1px solid var(--border); border-radius: 30px; color: var(--text-muted); cursor: pointer; transition: 0.15s; font-family: var(--font); }
-    .btn-xs:hover { background: var(--surface-2); color: var(--text); border-color: var(--text-muted); }
-    .btn-xs.danger:hover { background: var(--red); color: var(--bg); border-color: var(--red); }
 
     .card {
       background: var(--surface);
@@ -326,6 +323,7 @@
         if (currentUser) {
           await fetchExhibits();
           await fetchStatuses();
+          renderContent(); // initial render
         } else {
           renderContent();
         }
@@ -349,7 +347,6 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || {};
-        // Update only values/meta without full re-render
         updateStatusDisplay();
       } catch {}
     }
@@ -371,7 +368,7 @@
     }
 
     async function deleteExhibit(key) {
-      if (!confirm(`Delete the "${getExhibit(key)?.label || key}" exhibit?`)) return;
+      if (!confirm(`Delete the "${getExhibit(key)?.label || key}" exhibit? This will remove all its status data.`)) return;
       try {
         await apiFetch(`/api/custom-exhibits/${key}`, { method: 'DELETE' });
         await fetchExhibits();
@@ -394,6 +391,7 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
+    // ─── Option management with local DOM updates ──────────
     async function addOption(key) {
       const card = document.querySelector(`.status-item[data-key="${key}"]`);
       const input = card?.querySelector('.new-option-input');
@@ -415,7 +413,8 @@
         });
         await fetchExhibits();
         await fetchStatuses();
-        renderContent();
+        // Update only this card's options
+        renderCardOptions(key);
         showFlash(`Option "${label}" added`);
       } catch (e) { showFlash(e.message, 'error'); }
     }
@@ -428,76 +427,62 @@
         });
         await fetchExhibits();
         await fetchStatuses();
-        renderContent();
+        renderCardOptions(key);
         showFlash(`Option removed`);
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    async function logout() {
-      try {
-        await apiFetch('/api/logout', { method: 'POST' });
-        currentUser = null;
-        renderHeader();
-        renderContent();
-        showFlash('Logged out');
-      } catch (e) { showFlash(e.message, 'error'); }
+    // ─── Render a single card's options (no full re‑render) ─
+    function renderCardOptions(key) {
+      const card = document.querySelector(`.status-item[data-key="${key}"]`);
+      if (!card) return;
+      const actions = card.querySelector('.actions');
+      // Remove old option buttons (keep the manager and clear)
+      const oldBtns = actions.querySelectorAll('.option-btn');
+      oldBtns.forEach(b => b.remove());
+
+      const ex = getExhibit(key);
+      const options = ex ? JSON.parse(ex.options || '[]') : [];
+      const data = getStatus(key);
+      const display = data ? data.display || data.value : null;
+
+      // Insert new option buttons before the option-manager
+      const manager = actions.querySelector('.option-manager');
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = `option-btn ${display === opt.label || (data && data.value === opt.value) ? 'active' : ''}`;
+        btn.dataset.value = opt.value;
+        btn.innerHTML = `${opt.label} <span class="del-opt" onclick="event.stopPropagation();removeOption('${key}','${opt.value}')">✕</span>`;
+        btn.onclick = () => setStatus(key, opt.value, opt.label);
+        actions.insertBefore(btn, manager);
+      });
     }
 
-    // ─── PASSWORD LOGIN ─────────────────────────────────────
-    async function passwordLogin() {
-      const input = document.getElementById('passwordInput');
-      if (!input) return;
-      const password = input.value.trim();
-      if (!password) { showFlash('Please enter a password', 'error'); return; }
-
-      const btn = document.querySelector('.login-form .btn-accent');
-      const originalText = btn?.textContent || 'Login with Password';
-      if (btn) btn.textContent = 'Logging in...';
-
-      try {
-        const res = await fetch('/auth/password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password }),
-          credentials: 'include',
-        });
-
-        if (btn) btn.textContent = originalText;
-
-        if (!res.ok) {
-          let errMsg = 'Invalid password';
-          try {
-            const err = await res.json();
-            errMsg = err.error || errMsg;
-          } catch {
-            if (res.status === 500) errMsg = 'Server error. ADMIN_PASSWORD may not be set.';
-          }
-          throw new Error(errMsg);
+    // ─── Update status text and active classes ─────────────
+    function updateStatusDisplay() {
+      for (const key in statuses) {
+        const data = statuses[key];
+        const displayEl = document.getElementById(`display-${key}`);
+        const metaEl = document.getElementById(`meta-${key}`);
+        if (displayEl) {
+          displayEl.innerHTML = data ? (data.display || data.value) : '<span class="empty">—</span>';
         }
-
-        const data = await res.json();
-        if (data.success) {
-          await fetchUser();
-          showFlash('Logged in successfully');
-          input.value = '';
-        } else {
-          throw new Error(data.error || 'Login failed');
+        if (metaEl) {
+          metaEl.textContent = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
         }
-      } catch (e) {
-        showFlash(e.message, 'error');
-        if (btn) btn.textContent = originalText;
+        const card = document.querySelector(`.status-item[data-key="${key}"]`);
+        if (card) {
+          const btns = card.querySelectorAll('.option-btn');
+          btns.forEach(btn => {
+            const val = btn.dataset.value;
+            const isActive = data && data.value === val;
+            btn.classList.toggle('active', isActive);
+          });
+        }
       }
     }
 
-    // ─── RENDER FUNCTIONS ──────────────────────────────────
-    function renderHeader() {
-      if (currentUser) {
-        userArea.innerHTML = `<button class="btn btn-danger" onclick="logout()">Logout</button>`;
-      } else {
-        userArea.innerHTML = '';
-      }
-    }
-
+    // ─── Full render (called on login, add/delete exhibit) ─
     function renderContent() {
       if (!currentUser) {
         mainContent.innerHTML = `
@@ -516,7 +501,7 @@
         return;
       }
 
-      // Build status cards from exhibits
+      // Build status cards
       const statusCards = exhibits.map(ex => {
         const key = ex.key;
         const data = getStatus(key);
@@ -601,29 +586,69 @@
       `;
     }
 
-    // ─── Incremental status update (no re-render) ──────────
-    function updateStatusDisplay() {
-      for (const key in statuses) {
-        const data = statuses[key];
-        const displayEl = document.getElementById(`display-${key}`);
-        const metaEl = document.getElementById(`meta-${key}`);
-        if (displayEl) {
-          displayEl.innerHTML = data ? (data.display || data.value) : '<span class="empty">—</span>';
+    // ─── Password login ─────────────────────────────────────
+    async function passwordLogin() {
+      const input = document.getElementById('passwordInput');
+      if (!input) return;
+      const password = input.value.trim();
+      if (!password) { showFlash('Please enter a password', 'error'); return; }
+
+      const btn = document.querySelector('.login-form .btn-accent');
+      const originalText = btn?.textContent || 'Login with Password';
+      if (btn) btn.textContent = 'Logging in...';
+
+      try {
+        const res = await fetch('/auth/password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+          credentials: 'include',
+        });
+
+        if (btn) btn.textContent = originalText;
+
+        if (!res.ok) {
+          let errMsg = 'Invalid password';
+          try {
+            const err = await res.json();
+            errMsg = err.error || errMsg;
+          } catch {
+            if (res.status === 500) errMsg = 'Server error. ADMIN_PASSWORD may not be set.';
+          }
+          throw new Error(errMsg);
         }
-        if (metaEl) {
-          metaEl.textContent = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
+
+        const data = await res.json();
+        if (data.success) {
+          await fetchUser();
+          showFlash('Logged in successfully');
+          input.value = '';
+        } else {
+          throw new Error(data.error || 'Login failed');
         }
-        // Update active states
-        const card = document.querySelector(`.status-item[data-key="${key}"]`);
-        if (card) {
-          const btns = card.querySelectorAll('.option-btn');
-          btns.forEach(btn => {
-            const val = btn.dataset.value;
-            const isActive = data && data.value === val;
-            btn.classList.toggle('active', isActive);
-          });
-        }
+      } catch (e) {
+        showFlash(e.message, 'error');
+        if (btn) btn.textContent = originalText;
       }
+    }
+
+    // ─── Header ─────────────────────────────────────────────
+    function renderHeader() {
+      if (currentUser) {
+        userArea.innerHTML = `<button class="btn btn-danger" onclick="logout()">Logout</button>`;
+      } else {
+        userArea.innerHTML = '';
+      }
+    }
+
+    async function logout() {
+      try {
+        await apiFetch('/api/logout', { method: 'POST' });
+        currentUser = null;
+        renderHeader();
+        renderContent();
+        showFlash('Logged out');
+      } catch (e) { showFlash(e.message, 'error'); }
     }
 
     // ─── Custom form handler ──────────────────────────────
@@ -653,12 +678,20 @@
     }
 
     // ─── INIT ────────────────────────────────────────────────
+    let statusInterval, exhibitInterval;
+
     async function init() {
       await fetchUser();
       if (currentUser) {
-        // Poll for status updates every 10s (without full re-render)
-        setInterval(fetchStatuses, 10000);
-        setInterval(fetchExhibits, 30000);
+        // Poll statuses every 15s, but only if no input is focused
+        statusInterval = setInterval(async () => {
+          if (document.activeElement?.tagName === 'INPUT') return; // skip while typing
+          await fetchStatuses();
+        }, 15000);
+        // Refresh exhibits less often (60s)
+        exhibitInterval = setInterval(async () => {
+          await fetchExhibits();
+        }, 60000);
       }
     }
 
