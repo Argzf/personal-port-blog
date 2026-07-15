@@ -1,7 +1,7 @@
 {
   "name": "arsan-dashboard",
   "version": "1.0.0",
-  "description": "Arsan's status dashboard with Turso + Vercel",
+  "description": "Arsan's status dashboard",
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js",
