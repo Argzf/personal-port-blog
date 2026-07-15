@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
+    /* ── reset & tokens ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -44,6 +45,7 @@
 
     .container { max-width: 860px; width: 100%; }
 
+    /* ── header ── */
     .header {
       display: flex;
       flex-wrap: wrap;
@@ -72,6 +74,7 @@
       gap: 14px;
     }
 
+    /* ── buttons ── */
     .btn {
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -85,6 +88,8 @@
       font-family: var(--font);
       text-decoration: none;
       display: inline-block;
+      line-height: 1.6;
+      text-align: center;
     }
     .btn:hover { background: var(--border); border-color: var(--accent-dim); }
     .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -94,8 +99,38 @@
     .btn-danger { border-color: var(--red); color: var(--red); }
     .btn-danger:hover { background: var(--red); color: var(--bg); }
     .btn-block { display: block; width: 100%; text-align: center; }
-    .btn-sm { font-size: 0.6rem; padding: 2px 10px; line-height: 1.6; }
+    .btn-sm {
+      font-size: 0.6rem;
+      padding: 2px 12px;
+      line-height: 1.6;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font);
+    }
+    .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
+    .btn-xs {
+      font-size: 0.55rem;
+      padding: 1px 8px;
+      line-height: 1.4;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-xs:hover { background: var(--surface-2); color: var(--text); border-color: var(--text-muted); }
+    .btn-xs.danger:hover { background: var(--red); color: var(--bg); border-color: var(--red); }
 
+    /* ── cards ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -125,6 +160,7 @@
       font-weight: 400;
     }
 
+    /* ── login ── */
     .login-card { text-align: center; padding: 48px 28px; }
     .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
     .login-card h2 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 400; margin-bottom: 4px; justify-content: center; }
@@ -143,6 +179,7 @@
     }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
+    /* ── status grid ── */
     .status-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -184,35 +221,70 @@
       display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
     }
     .status-item .actions button.option-btn {
-      background: transparent; border: 1px solid var(--border); border-radius: 30px;
-      padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
-      cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8;
-      display: inline-flex; align-items: center; gap: 2px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 2px 12px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font);
+      line-height: 1.8;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
     }
     .status-item .actions button.option-btn:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
     .status-item .actions button.option-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
     .status-item .actions button.option-btn .del-opt {
-      font-size: 0.55rem; opacity: 0.4; margin-left: 2px; transition: opacity 0.2s;
-      background: none; border: none; color: inherit; cursor: pointer; padding: 0 2px;
+      font-size: 0.55rem;
+      opacity: 0.4;
+      margin-left: 2px;
+      transition: opacity 0.2s;
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 0 2px;
     }
     .status-item .actions button.option-btn .del-opt:hover { opacity: 1; color: var(--red); }
 
     .status-item .actions .option-manager {
-      display: inline-flex; align-items: center; gap: 4px; margin-left: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 4px;
     }
     .status-item .actions .option-manager input {
-      background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px;
-      padding: 1px 10px; font-size: 0.6rem; color: var(--text); font-family: var(--font);
-      width: 70px; outline: none; height: 22px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 1px 10px;
+      font-size: 0.6rem;
+      color: var(--text);
+      font-family: var(--font);
+      width: 70px;
+      outline: none;
+      height: 22px;
     }
     .status-item .actions .option-manager input:focus { border-color: var(--accent); }
     .status-item .clear-btn {
-      background: transparent; border: none; color: var(--text-muted);
-      font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
-      font-family: var(--font); padding: 2px 4px; margin-left: 4px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.55rem;
+      cursor: pointer;
+      opacity: 0.3;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 2px 4px;
+      margin-left: 4px;
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
+    /* ── flash ── */
     .flash {
       padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.85rem;
       border: 1px solid transparent;
@@ -220,25 +292,43 @@
     .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
     .flash-error { background: rgba(247, 120, 122, 0.12); border-color: var(--red); color: var(--red); }
 
+    /* ── custom exhibit form ── */
     .custom-form {
-      display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px;
     }
     .custom-form .field-group {
-      display: flex; flex-direction: column; gap: 4px; flex: 1 1 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1 1 140px;
     }
     .custom-form .field-group label {
-      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-family: var(--font-mono);
     }
     .custom-form .field-group input {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-      padding: 6px 10px; color: var(--text); font-size: 0.85rem; font-family: var(--font);
-      outline: none; width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font);
+      outline: none;
+      width: 100%;
     }
     .custom-form .field-group input:focus { border-color: var(--accent); }
     .custom-form .field-group.icon-input { flex: 0 0 80px; }
     .custom-form .field-group.icon-input input { text-align: center; }
 
+    /* ── footer ── */
     .footer {
       margin-top: 16px; text-align: center; color: var(--text-muted);
       font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4;
@@ -323,7 +413,7 @@
         if (currentUser) {
           await fetchExhibits();
           await fetchStatuses();
-          renderContent(); // initial render
+          renderContent();
         } else {
           renderContent();
         }
@@ -391,31 +481,33 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    // ─── Option management with local DOM updates ──────────
+    // ─── Option management (local DOM updates) ──────────────
     async function addOption(key) {
       const card = document.querySelector(`.status-item[data-key="${key}"]`);
       const input = card?.querySelector('.new-option-input');
       if (!input) return;
       const raw = input.value.trim();
       if (!raw) { showFlash('Enter a value', 'error'); return; }
-      
+
       let value = raw, label = raw;
       if (raw.includes(':')) {
         const parts = raw.split(':');
         value = parts[0].trim();
         label = parts[1].trim();
       }
-      
+
       try {
         await apiFetch(`/api/exhibits/${key}/options`, {
           method: 'PUT',
           body: JSON.stringify({ value, label }),
         });
+        // Refresh exhibits to get the new options list
         await fetchExhibits();
-        await fetchStatuses();
         // Update only this card's options
         renderCardOptions(key);
+        // Update status display in case the new option was already logged? not needed
         showFlash(`Option "${label}" added`);
+        input.value = '';  // clear the input field
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
@@ -426,7 +518,6 @@
           body: JSON.stringify({ value }),
         });
         await fetchExhibits();
-        await fetchStatuses();
         renderCardOptions(key);
         showFlash(`Option removed`);
       } catch (e) { showFlash(e.message, 'error'); }
@@ -470,6 +561,7 @@
         if (metaEl) {
           metaEl.textContent = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
         }
+        // Update active classes on option buttons
         const card = document.querySelector(`.status-item[data-key="${key}"]`);
         if (card) {
           const btns = card.querySelectorAll('.option-btn');
@@ -683,9 +775,9 @@
     async function init() {
       await fetchUser();
       if (currentUser) {
-        // Poll statuses every 15s, but only if no input is focused
+        // Poll statuses every 15s, skip if any input is focused
         statusInterval = setInterval(async () => {
-          if (document.activeElement?.tagName === 'INPUT') return; // skip while typing
+          if (document.activeElement?.tagName === 'INPUT') return;
           await fetchStatuses();
         }, 15000);
         // Refresh exhibits less often (60s)
