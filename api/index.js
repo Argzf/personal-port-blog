@@ -107,13 +107,18 @@ function getTehranDate() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  DEBUG ENDPOINT — remove in production
+//  DEBUG ENDPOINT (also checks password match)
 // ════════════════════════════════════════════════════════════════
 app.get('/debug', (req, res) => {
+  const adminSet = !!process.env.ADMIN_PASSWORD;
+  const debugSet = !!process.env.DEBUG_PASSWORD;
   res.json({
-    admin_password_set: !!process.env.ADMIN_PASSWORD,
+    admin_password_set: adminSet,
+    debug_password_set: debugSet,
     discord_client_set: !!process.env.DISCORD_CLIENT_ID,
-    env_keys: Object.keys(process.env).filter(k => k.startsWith('ADMIN') || k.startsWith('DISCORD') || k.startsWith('TURSO')),
+    env_keys: Object.keys(process.env).filter(k => 
+      k.startsWith('ADMIN') || k.startsWith('DEBUG') || k.startsWith('DISCORD') || k.startsWith('TURSO')
+    ),
   });
 });
 
@@ -140,28 +145,39 @@ app.get('/auth/discord/callback',
   }
 );
 
-// ─── Password fallback login ────────────────────────────
+// ─── Password fallback login (FIXED with logging) ──────
 app.post('/auth/password', (req, res) => {
   const { password } = req.body;
   
-  console.log('[Auth] Password login attempt');
-  console.log('[Auth] ADMIN_PASSWORD set?', !!process.env.ADMIN_PASSWORD);
+  console.log('[Auth] Password login attempt received');
   
-  const expectedPassword = process.env.ADMIN_PASSWORD;
+  // Get expected passwords from environment
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const debugPassword = process.env.DEBUG_PASSWORD; // optional test password
   
-  if (!expectedPassword) {
-    console.error('[Auth] ADMIN_PASSWORD not set in environment!');
+  console.log('[Auth] ADMIN_PASSWORD set?', !!adminPassword);
+  console.log('[Auth] DEBUG_PASSWORD set?', !!debugPassword);
+  
+  if (!adminPassword && !debugPassword) {
+    console.error('[Auth] No password configured in environment!');
     return res.status(500).json({ 
-      error: 'Password authentication not configured. ADMIN_PASSWORD environment variable is missing.' 
+      error: 'Password authentication not configured. Set ADMIN_PASSWORD environment variable.' 
     });
   }
   
   const trimmedInput = (password || '').trim();
-  const trimmedExpected = expectedPassword.trim();
   
-  console.log('[Auth] Input length:', trimmedInput.length, 'Expected length:', trimmedExpected.length);
+  // Check against admin password
+  let match = false;
+  if (adminPassword && trimmedInput === adminPassword.trim()) {
+    match = true;
+  }
+  // Check against debug password (if set)
+  if (!match && debugPassword && trimmedInput === debugPassword.trim()) {
+    match = true;
+  }
   
-  if (trimmedInput === trimmedExpected) {
+  if (match) {
     console.log('[Auth] ✅ Password login successful');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
@@ -178,6 +194,8 @@ app.post('/auth/password', (req, res) => {
   }
   
   console.log('[Auth] ❌ Password login failed — incorrect password');
+  console.log('[Auth] Input length:', trimmedInput.length);
+  if (adminPassword) console.log('[Auth] Expected length:', adminPassword.trim().length);
   res.status(401).json({ error: 'Invalid password' });
 });
 
