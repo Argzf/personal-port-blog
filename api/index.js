@@ -18,7 +18,6 @@ const turso = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-// Initialize database
 async function initDatabase() {
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
@@ -41,6 +40,7 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const sessionConfig = {
   secret: process.env.SESSION_SECRET,
@@ -98,14 +98,13 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-// ─── Helpers ─────────────────────────────────────────────
 function getTehranDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ROUTES — MUST BE DEFINED BEFORE STATIC FALLBACK
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+//  IMPORTANT: ALL ROUTES MUST BE DEFINED BEFORE STATIC FILES
+// ════════════════════════════════════════════════════════════════
 
 // ─── Discord OAuth ──────────────────────────────────────
 app.get('/auth/discord', passport.authenticate('discord'));
@@ -114,14 +113,8 @@ app.get('/auth/discord/callback',
   passport.authenticate('discord', { failureRedirect: '/admin?error=discord_failed' }),
   (req, res) => {
     const user = req.user;
-    if (!user) {
-      return res.redirect('/admin?error=unauthorized');
-    }
-    const token = generateToken({ 
-      id: user.id, 
-      username: user.username, 
-      avatar: user.avatar 
-    });
+    if (!user) return res.redirect('/admin?error=unauthorized');
+    const token = generateToken({ id: user.id, username: user.username, avatar: user.avatar });
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: process.env.VERCEL === '1',
@@ -142,7 +135,6 @@ app.post('/auth/password', (req, res) => {
   }
   
   if (password === expected) {
-    // Generate a token for the password user
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET,
@@ -220,21 +212,21 @@ app.post('/api/logout', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
-// ═══════════════════════════════════════════════════════════
-//  STATIC FILES — MUST COME AFTER API ROUTES
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+//  STATIC FILES — MUST COME AFTER ALL ROUTES
+// ════════════════════════════════════════════════════════════════
 
-// Serve static files from /public
+// Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Fallback: serve index.html for non-API routes (SPA support)
+// SPA fallback for admin
+app.get('/admin*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+});
+
+// General fallback for main site
 app.get('*', (req, res) => {
-  // If the path starts with /admin, serve admin/index.html
-  if (req.path.startsWith('/admin')) {
-    return res.sendFile(path.join(__dirname, '../public/admin/index.html'));
-  }
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// ─── Export for Vercel ──────────────────────────────────
 module.exports = app;
