@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 
   <style>
+    /* ── variables ── */
     * {
       margin: 0;
       padding: 0;
@@ -30,7 +31,6 @@
       --shadow: rgba(0, 0, 0, 0.5);
       --tag-bg: rgba(30, 24, 20, 0.08);
       --accent: #B84A3A;
-
       --font-body: 'Inter', system-ui, sans-serif;
       --font-hand: 'Kalam', cursive;
       --font-mono: 'JetBrains Mono', monospace;
@@ -55,9 +55,7 @@
       }
     }
 
-    html {
-      font-size: 16px;
-    }
+    html { font-size: 16px; }
 
     body {
       font-family: var(--font-body);
@@ -75,12 +73,9 @@
       background-size: 100% 100%, 100% 100%, 100% 100%;
     }
 
-    .container {
-      max-width: 860px;
-      width: 100%;
-    }
+    .container { max-width: 860px; width: 100%; }
 
-    /* ── Board header ── */
+    /* ── header ── */
     .board-header {
       display: flex;
       flex-wrap: wrap;
@@ -175,14 +170,10 @@
       border-radius: 0 0 2px 2px;
     }
 
-    /* ── Board content ── */
-    .board-content {
-      display: flex;
-      flex-direction: column;
-      gap: clamp(18px, 3vw, 28px);
-    }
+    /* ── content ── */
+    .board-content { display: flex; flex-direction: column; gap: clamp(18px, 3vw, 28px); }
 
-    /* ── Polaroid grid ── */
+    /* ── polaroid grid ── */
     .polaroid-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
@@ -324,7 +315,7 @@
       text-transform: uppercase;
     }
 
-    /* ── Subject profile ── */
+    /* ── subject profile ── */
     .subject-profile {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -410,7 +401,7 @@
       color: var(--red-string);
     }
 
-    /* ── Sticky notes ── */
+    /* ── sticky notes ── */
     .sticky-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -478,7 +469,7 @@
       opacity: 0.7;
     }
 
-    /* ── Diary folder ── */
+    /* ── diary folder ── */
     .diary-folder {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -524,7 +515,6 @@
       color: var(--ink);
     }
 
-    /* ── Diary entries list ── */
     .diary-entries {
       margin-top: 12px;
       display: flex;
@@ -596,7 +586,7 @@
       color: var(--ink-light);
     }
 
-    /* ── Footer ── */
+    /* ── footer ── */
     .footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -635,7 +625,7 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── Responsive ── */
+    /* ── responsive ── */
     @media (max-width: 600px) {
       .board-header {
         flex-direction: column;
@@ -692,7 +682,7 @@
 
   <div class="container">
 
-    <!-- ═══ BOARD HEADER ═══ -->
+    <!-- ═══ HEADER ═══ -->
     <div class="board-header">
       <div>
         <div class="badge">🕵️ active investigation</div>
@@ -706,7 +696,7 @@
       <div class="red-string-decoration"></div>
     </div>
 
-    <!-- ═══ BOARD CONTENT ═══ -->
+    <!-- ═══ CONTENT ═══ -->
     <div class="board-content">
 
       <!-- STATUS POLAROIDS -->
@@ -724,7 +714,7 @@
             <circle id="dotC" cx="0" cy="0" r="0" />
           </svg>
 
-          <!-- EXHIBIT A: Caffeine -->
+          <!-- EXHIBIT A -->
           <div class="polaroid" style="--rot:-1.5deg;" id="caffeineItem">
             <span class="photo-icon">☕</span>
             <div class="label">caffeine</div>
@@ -733,7 +723,7 @@
             <span class="evidence-tag">EXHIBIT A</span>
           </div>
 
-          <!-- EXHIBIT B: Activity / Whereabouts -->
+          <!-- EXHIBIT B -->
           <div class="polaroid" style="--rot:2deg;" id="activityItem">
             <span class="photo-icon">👤</span>
             <div class="label">activity</div>
@@ -742,7 +732,7 @@
             <span class="evidence-tag">EXHIBIT B</span>
           </div>
 
-          <!-- EXHIBIT C: Mood -->
+          <!-- EXHIBIT C -->
           <div class="polaroid" style="--rot:-0.8deg;" id="moodItem">
             <span class="photo-icon">🎭</span>
             <div class="label">mood</div>
@@ -774,7 +764,7 @@
         </div>
       </div>
 
-      <!-- STICKY NOTES: Interests & Traits -->
+      <!-- STICKY NOTES -->
       <div class="sticky-grid">
 
         <div class="sticky" style="--rot:-1deg;">
@@ -813,7 +803,7 @@
         <span class="big-icon">📖</span>
         <p><strong>Diary Entries</strong></p>
         <div id="diaryEntriesContainer" class="diary-entries">
-          <!-- Rendered by JavaScript -->
+          <!-- Rendered by JS -->
         </div>
         <div class="folder-tags">
           <span>reflections</span>
@@ -841,7 +831,7 @@
   </div>
 
   <script>
-    // ─── Dynamic Age (Tehran timezone) ───
+    // ─── Age ─────────────────────────────────────────────────
     function calculateAge() {
       const birth = new Date('2012-05-10');
       const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tehran' }));
@@ -857,16 +847,13 @@
       if (!el) return;
       const age = calculateAge();
       let formattedAge = String(age);
-      if (age < 100) {
-        formattedAge = formattedAge.padStart(3, '0');
-      }
+      if (age < 100) formattedAge = formattedAge.padStart(3, '0');
       el.textContent = formattedAge;
     }
 
-    // ─── Wavy red string ──────────────────────────────────────────
+    // ─── Red string ─────────────────────────────────────────
     function getWavyPath(points) {
       if (points.length < 2) return '';
-
       const segments = [];
       for (let i = 0; i < points.length - 1; i++) {
         const p1 = points[i];
@@ -875,12 +862,10 @@
         const dy = p2.y - p1.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 1) continue;
-
         const angle = Math.atan2(dy, dx);
         const numPoints = Math.max(30, Math.floor(dist / 4));
         const amplitude = 10;
         const waves = 3.5;
-
         let segmentPath = '';
         for (let j = 0; j <= numPoints; j++) {
           const t = j / numPoints;
@@ -903,33 +888,20 @@
       const grid = document.getElementById('statusGrid');
       const svg = document.getElementById('redStringSvg');
       const path = document.getElementById('stringPath');
-      const dots = {
-        a: document.getElementById('dotA'),
-        b: document.getElementById('dotB'),
-        c: document.getElementById('dotC')
-      };
-
+      const dots = { a: document.getElementById('dotA'), b: document.getElementById('dotB'), c: document.getElementById('dotC') };
       if (!grid || !svg || !path) return;
-
       const cards = grid.querySelectorAll('.polaroid');
-      if (cards.length < 2) {
-        path.setAttribute('d', '');
-        return;
-      }
-
+      if (cards.length < 2) { path.setAttribute('d', ''); return; }
       const gridRect = grid.getBoundingClientRect();
       const points = [];
-
       cards.forEach((card) => {
         const rect = card.getBoundingClientRect();
         const cx = rect.left + rect.width / 2 - gridRect.left;
         const cy = rect.top + rect.height / 2 - gridRect.top;
         points.push({ x: cx, y: cy });
       });
-
       const d = getWavyPath(points);
       path.setAttribute('d', d);
-
       const dotKeys = ['a', 'b', 'c'];
       points.forEach((p, i) => {
         if (i < 3) {
@@ -947,23 +919,20 @@
       }
     }
 
-    // ─── Status logic (fetch from API) ──────────────────────
+    // ─── Statuses ────────────────────────────────────────────
     let statuses = { caffeine: null, activity: null, mood: null };
-
-    function now() { return new Date(); }
 
     function formatTimeAgo(date) {
       const diff = (Date.now() - date) / 1000;
       if (diff < 60) return 'just now';
       if (diff < 3600) { const m = Math.floor(diff / 60); return m + 'm' + (m > 1 ? 's' : '') + ' ago'; }
       if (diff < 86400) { const h = Math.floor(diff / 3600); return h + 'h' + (h > 1 ? 's' : '') + ' ago'; }
-      const d = Math.floor(diff / 86400);
-      return d + 'd' + (d > 1 ? 's' : '') + ' ago';
+      const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
 
     async function fetchStatuses() {
       try {
-        const res = await fetch('/api/statuses', { credentials: 'include' });
+        const res = await fetch('/api/statuses', { credentials: 'include', cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch statuses');
         const data = await res.json();
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
@@ -985,13 +954,11 @@
       const displayEl = document.getElementById(key + 'Display');
       const metaEl = document.getElementById(key + 'Meta');
       if (!displayEl) return;
-
       if (!data) {
         displayEl.textContent = '—';
         if (metaEl) metaEl.textContent = 'not logged';
         return;
       }
-
       displayEl.textContent = data.display || data.value;
       if (metaEl) {
         const timestamp = new Date(data.timestamp);
@@ -1002,7 +969,7 @@
     // ─── Diary entries ──────────────────────────────────────
     async function fetchDiaryEntries() {
       try {
-        const res = await fetch('/api/public-entries');
+        const res = await fetch('/api/public-entries', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch entries');
         const data = await res.json();
         renderDiaryEntries(data.entries || []);
@@ -1015,12 +982,10 @@
     function renderDiaryEntries(entries) {
       const container = document.getElementById('diaryEntriesContainer');
       if (!container) return;
-
       if (entries.length === 0) {
         container.innerHTML = `<div class="diary-empty">No entries yet. Check back later.</div>`;
         return;
       }
-
       container.innerHTML = entries.map(entry => `
         <div class="diary-entry">
           <div class="entry-content">${escapeHtml(entry.content)}</div>
@@ -1035,23 +1000,20 @@
       return div.innerHTML;
     }
 
-    // ─── Initial render and periodic refresh ──────────────────
+    // ─── Init ────────────────────────────────────────────────
     async function init() {
       await fetchStatuses();
       await fetchDiaryEntries();
       updateCaseAge();
       setTimeout(updateRedString, 100);
 
-      // Refresh statuses every 10s
       setInterval(async () => {
         await fetchStatuses();
         updateRedString();
       }, 10000);
 
-      // Refresh diary entries every 30s
       setInterval(fetchDiaryEntries, 30000);
 
-      // Red string on resize
       let resizeTimer;
       function handleResize() {
         clearTimeout(resizeTimer);
@@ -1059,7 +1021,6 @@
       }
       window.addEventListener('resize', handleResize);
       window.addEventListener('orientationchange', () => setTimeout(updateRedString, 300));
-
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => updateRedString());
         const grid = document.getElementById('statusGrid');
@@ -1069,7 +1030,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · connected to API');
+    console.log('🕵️ Arsan\'s Corner · connected to API');
   </script>
 
 </body>
