@@ -19,7 +19,6 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +35,6 @@ async function initDatabase() {
     await turso.execute(`ALTER TABLE statuses ADD COLUMN is_custom INTEGER DEFAULT 0`);
   } catch (e) {}
 
-  // Entries table for diary / blog / rants
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,8 +55,19 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ─── Logging middleware ──────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
+// ─── DISABLE CACHING FOR API AND AUTH ROUTES ───────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
   next();
 });
 
