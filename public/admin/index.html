@@ -44,7 +44,6 @@
 
     .container { max-width: 820px; width: 100%; }
 
-    /* ── header ── */
     .header {
       display: flex;
       flex-wrap: wrap;
@@ -73,7 +72,6 @@
       gap: 14px;
     }
 
-    /* ── buttons ── */
     .btn {
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -98,8 +96,34 @@
     .btn-danger { border-color: var(--red); color: var(--red); }
     .btn-danger:hover { background: var(--red); color: var(--bg); }
     .btn-block { display: block; width: 100%; text-align: center; }
+    .btn-sm {
+      font-size: 0.6rem;
+      padding: 2px 12px;
+      line-height: 1.6;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font);
+    }
+    .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
+    .btn-xs {
+      font-size: 0.55rem;
+      padding: 1px 8px;
+      line-height: 1.4;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font);
+    }
+    .btn-xs:hover { background: var(--surface-2); color: var(--text); border-color: var(--text-muted); }
+    .btn-xs.danger:hover { background: var(--red); color: var(--bg); border-color: var(--red); }
 
-    /* ── cards ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -129,7 +153,6 @@
       font-weight: 400;
     }
 
-    /* ── login ── */
     .login-card { text-align: center; padding: 48px 28px; }
     .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
     .login-card h2 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 400; margin-bottom: 4px; justify-content: center; }
@@ -251,7 +274,79 @@
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    /* ── flash ── */
+    /* ── Entries ── */
+    .entry-form textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: var(--font);
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+    }
+    .entry-form textarea:focus { border-color: var(--accent); }
+    .entry-form .submit-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .entry-list {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .entry-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .entry-item .content {
+      flex: 1;
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+    .entry-item .timestamp {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .entry-item .delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--red);
+      font-size: 0.7rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .entry-item .delete-btn:hover { opacity: 1; }
+
+    .empty-entries {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      opacity: 0.6;
+      text-align: center;
+      padding: 16px 0;
+    }
+
     .flash {
       padding: 10px 16px;
       border-radius: 6px;
@@ -262,7 +357,6 @@
     .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
     .flash-error { background: rgba(247, 120, 122, 0.12); border-color: var(--red); color: var(--red); }
 
-    /* ── footer ── */
     .footer {
       margin-top: 16px;
       text-align: center;
@@ -281,6 +375,8 @@
       .card { padding: 16px 18px; }
       .status-grid { grid-template-columns: 1fr; }
       .login-card { padding: 32px 16px; }
+      .entry-item { flex-wrap: wrap; }
+      .entry-item .timestamp { width: 100%; }
     }
   </style>
 </head>
@@ -299,6 +395,7 @@
     // ─── STATE ──────────────────────────────────────────────
     let currentUser = null;
     let statuses = { caffeine: null, activity: null, mood: null };
+    let entries = [];
 
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
@@ -345,7 +442,7 @@
         currentUser = data.user;
         renderHeader();
         if (currentUser) {
-          await fetchStatuses();
+          await Promise.all([fetchStatuses(), fetchEntries()]);
           renderContent();
         } else {
           renderContent();
@@ -365,6 +462,14 @@
       } catch {}
     }
 
+    async function fetchEntries() {
+      try {
+        const data = await apiFetch('/api/entries');
+        entries = data.entries || [];
+        renderEntries();
+      } catch {}
+    }
+
     async function setStatus(key, value, display) {
       try {
         await apiFetch('/api/status', { method: 'POST', body: JSON.stringify({ key, value, display }) });
@@ -378,6 +483,22 @@
         await apiFetch('/api/status', { method: 'DELETE', body: JSON.stringify({ key }) });
         await fetchStatuses();
         showFlash(`${key} cleared`);
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function createEntry(content) {
+      try {
+        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify({ content }) });
+        await fetchEntries();
+        showFlash('Entry added');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function deleteEntry(id) {
+      try {
+        await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
+        await fetchEntries();
+        showFlash('Entry deleted');
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
@@ -468,7 +589,7 @@
       const activity = getStatus('activity');
       const mood = getStatus('mood');
 
-      mainContent.innerHTML = `
+      const statusHtml = `
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
@@ -494,10 +615,32 @@
             ])}
           </div>
         </div>
-        <div class="card" style="border-color:var(--border); opacity:0.7;">
-          <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses reset automatically at midnight (Tehran time).</p>
+      `;
+
+      const entriesHtml = `
+        <div class="card">
+          <h2>📝 Diary Entries</h2>
+          <form class="entry-form" onsubmit="handleEntrySubmit(event)">
+            <textarea id="entryContent" placeholder="Write a short message, rant, or blog snippet..." required></textarea>
+            <div class="submit-row">
+              <button type="submit" class="btn btn-accent">Post Entry</button>
+            </div>
+          </form>
+          <div id="entryList" class="entry-list">
+            <!-- rendered by renderEntries() -->
+          </div>
         </div>
       `;
+
+      const infoCard = `
+        <div class="card" style="border-color:var(--border); opacity:0.7;">
+          <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses reset at midnight (Tehran time).</p>
+          <p style="font-size:0.7rem; color:var(--text-muted); opacity:0.5;">Entries are stored permanently and displayed on the homepage diary section.</p>
+        </div>
+      `;
+
+      mainContent.innerHTML = statusHtml + entriesHtml + infoCard;
+      renderEntries(); // populate the list
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -522,7 +665,31 @@
       `;
     }
 
-    // ─── Update display without full re-render ─────────────
+    function renderEntries() {
+      const container = document.getElementById('entryList');
+      if (!container) return;
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-entries">No entries yet. Write something!</div>`;
+        return;
+      }
+
+      container.innerHTML = entries.map(entry => `
+        <div class="entry-item">
+          <div class="content">${escapeHtml(entry.content)}</div>
+          <div class="timestamp">${formatTimeAgo(entry.timestamp)}</div>
+          <button class="delete-btn" onclick="deleteEntry(${entry.id})" title="Delete entry">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ─── Update status display without full re-render ─────
     function updateStatusDisplay() {
       const keys = ['caffeine', 'activity', 'mood'];
       for (const key of keys) {
@@ -536,8 +703,6 @@
           metaEl.textContent = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
         }
         // Update active buttons
-        const card = document.querySelector(`.status-item:has(.label:contains(${key}))`);
-        // Alternative: find by label text
         const items = document.querySelectorAll('.status-item');
         for (const item of items) {
           const label = item.querySelector('.label');
@@ -552,16 +717,32 @@
       }
     }
 
+    // ─── Entry form handler ──────────────────────────────
+    async function handleEntrySubmit(e) {
+      e.preventDefault();
+      const textarea = document.getElementById('entryContent');
+      const content = textarea.value.trim();
+      if (!content) {
+        showFlash('Please write something', 'error');
+        return;
+      }
+      await createEntry(content);
+      textarea.value = '';
+    }
+
     // ─── INIT ────────────────────────────────────────────────
-    let statusInterval;
+    let statusInterval, entryInterval;
 
     async function init() {
       await fetchUser();
       if (currentUser) {
         statusInterval = setInterval(async () => {
-          if (document.activeElement?.tagName === 'INPUT') return;
+          if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
           await fetchStatuses();
         }, 15000);
+        entryInterval = setInterval(async () => {
+          await fetchEntries();
+        }, 30000);
       }
     }
 
@@ -571,7 +752,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · dashboard');
+    console.log('🕵️ Arsan\'s Archive · dashboard with diary entries');
   </script>
 </body>
 </html>
