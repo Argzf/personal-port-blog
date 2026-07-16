@@ -5,15 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arsan · Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" "https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     /* ── same styles as before ── */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
       --bg: #1A1410;
@@ -47,10 +43,7 @@
       background-image: radial-gradient(circle at 20% 50%, rgba(90, 60, 40, 0.15) 0%, transparent 60%);
     }
 
-    .container {
-      max-width: 820px;
-      width: 100%;
-    }
+    .container { max-width: 820px; width: 100%; }
 
     .header {
       display: flex;
@@ -68,14 +61,12 @@
       font-weight: 400;
       letter-spacing: -0.02em;
     }
-
     .header h1 .sub {
       font-family: var(--font);
       font-size: 0.85rem;
       font-weight: 300;
       color: var(--text-muted);
     }
-
     .header .user-area {
       display: flex;
       align-items: center;
@@ -96,51 +87,14 @@
       text-decoration: none;
       display: inline-block;
     }
-
-    .btn:hover {
-      background: var(--border);
-      border-color: var(--accent-dim);
-    }
-
-    .btn-accent {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
-
-    .btn-accent:hover {
-      background: var(--accent-dim);
-      border-color: var(--accent-dim);
-      color: var(--bg);
-    }
-
-    .btn-discord {
-      background: #5865F2;
-      border-color: #5865F2;
-      color: #fff;
-    }
-
-    .btn-discord:hover {
-      background: #4752C4;
-      border-color: #4752C4;
-      color: #fff;
-    }
-
-    .btn-danger {
-      border-color: var(--red);
-      color: var(--red);
-    }
-
-    .btn-danger:hover {
-      background: var(--red);
-      color: var(--bg);
-    }
-
-    .btn-block {
-      display: block;
-      width: 100%;
-      text-align: center;
-    }
+    .btn:hover { background: var(--border); border-color: var(--accent-dim); }
+    .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+    .btn-accent:hover { background: var(--accent-dim); border-color: var(--accent-dim); color: var(--bg); }
+    .btn-discord { background: #5865F2; border-color: #5865F2; color: #fff; }
+    .btn-discord:hover { background: #4752C4; border-color: #4752C4; color: #fff; }
+    .btn-danger { border-color: var(--red); color: var(--red); }
+    .btn-danger:hover { background: var(--red); color: var(--bg); }
+    .btn-block { display: block; width: 100%; text-align: center; }
 
     .card {
       background: var(--surface);
@@ -161,7 +115,6 @@
       align-items: center;
       gap: 8px;
     }
-
     .card h2 .badge-count {
       font-family: var(--font-mono);
       font-size: 0.65rem;
@@ -172,70 +125,23 @@
       font-weight: 400;
     }
 
-    .login-card {
-      text-align: center;
-      padding: 48px 28px;
-    }
+    .login-card { text-align: center; padding: 48px 28px; }
+    .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
+    .login-card h2 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 400; margin-bottom: 4px; justify-content: center; }
+    .login-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
 
-    .login-card .icon {
-      font-size: 3rem;
-      margin-bottom: 12px;
-      opacity: 0.6;
-    }
-
-    .login-card h2 {
-      font-family: var(--font-serif);
-      font-size: 1.4rem;
-      font-weight: 400;
-      margin-bottom: 4px;
-      justify-content: center;
-    }
-
-    .login-card p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 24px;
-    }
-
-    .login-form {
-      max-width: 340px;
-      margin: 0 auto;
-    }
-
+    .login-form { max-width: 340px; margin: 0 auto; }
     .login-form input[type="password"] {
-      width: 100%;
-      padding: 10px 16px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-      font-family: var(--font);
-      outline: none;
+      width: 100%; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px;
+      font-family: var(--font); outline: none;
     }
-
-    .login-form input[type="password"]:focus {
-      border-color: var(--accent);
-    }
-
+    .login-form input[type="password"]:focus { border-color: var(--accent); }
     .login-divider {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin: 20px 0;
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
+      display: flex; align-items: center; gap: 16px; margin: 20px 0;
+      color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono);
     }
-
-    .login-divider::before,
-    .login-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
+    .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
     .status-grid {
       display: grid;
@@ -250,241 +156,97 @@
       padding: 16px 18px;
       transition: border-color 0.2s;
     }
-
-    .status-item:hover {
-      border-color: var(--accent-dim);
-    }
+    .status-item:hover { border-color: var(--accent-dim); }
 
     .status-item .label {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
+      display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
     }
 
     .status-item .current {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 2px;
-      min-height: 1.8rem;
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem;
     }
-
-    .status-item .current .empty {
-      color: var(--text-muted);
-      font-weight: 400;
-      opacity: 0.5;
-    }
+    .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
 
     .status-item .meta {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      margin-bottom: 10px;
-      min-height: 1.2rem;
+      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
+      opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem;
     }
 
     .status-item .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      display: flex; flex-wrap: wrap; gap: 4px;
     }
-
     .status-item .actions button {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 2px 12px;
-      font-size: 0.65rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      font-family: var(--font);
-      line-height: 1.8;
+      background: transparent; border: 1px solid var(--border); border-radius: 30px;
+      padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8;
     }
-
-    .status-item .actions button:hover {
-      background: var(--surface-2);
-      border-color: var(--text-muted);
-      color: var(--text);
-    }
-
-    .status-item .actions button.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-tea {
-      background: #b88a5e;
-      border-color: #b88a5e;
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-coffee {
-      background: #6f4e37;
-      border-color: #6f4e37;
-      color: #F7F5F2;
-    }
+    .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
+    .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 
     .status-item .clear-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.55rem;
-      cursor: pointer;
-      opacity: 0.3;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 2px 4px;
-      margin-left: 4px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
+      font-family: var(--font); padding: 2px 4px; margin-left: 4px;
     }
+    .status-item .clear-btn:hover { opacity: 0.8; }
 
-    .status-item .clear-btn:hover {
-      opacity: 0.8;
-    }
-
-    /* ── entry styles ── */
+    /* ── diary styles ── */
     .entry-form textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: var(--font);
-      resize: vertical;
-      min-height: 80px;
-      outline: none;
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px; color: var(--text);
+      font-size: 0.9rem; font-family: var(--font); resize: vertical;
+      min-height: 80px; outline: none;
     }
-
-    .entry-form textarea:focus {
-      border-color: var(--accent);
-    }
-
-    .entry-form .submit-row {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
+    .entry-form textarea:focus { border-color: var(--accent); }
+    .entry-form .submit-row { display: flex; justify-content: flex-end; margin-top: 8px; }
 
     .entry-list {
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      margin-top: 16px; display: flex; flex-direction: column; gap: 10px;
     }
 
     .entry-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 16px; display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px;
     }
-
-    .entry-item .content {
-      flex: 1;
-      font-size: 0.9rem;
-      word-break: break-word;
-    }
-
+    .entry-item .content { flex: 1; font-size: 0.9rem; word-break: break-word; }
     .entry-item .timestamp {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      white-space: nowrap;
-      margin-top: 2px;
+      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
+      opacity: 0.6; white-space: nowrap; margin-top: 2px;
     }
-
     .entry-item .delete-btn {
-      background: transparent;
-      border: none;
-      color: var(--red);
-      font-size: 0.7rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 0 4px;
-      flex-shrink: 0;
+      background: transparent; border: none; color: var(--red); font-size: 0.7rem;
+      cursor: pointer; opacity: 0.4; transition: opacity 0.2s; font-family: var(--font);
+      padding: 0 4px; flex-shrink: 0;
     }
-
-    .entry-item .delete-btn:hover {
-      opacity: 1;
-    }
+    .entry-item .delete-btn:hover { opacity: 1; }
 
     .empty-entries {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      opacity: 0.6;
-      text-align: center;
-      padding: 16px 0;
+      color: var(--text-muted); font-size: 0.85rem; opacity: 0.6;
+      text-align: center; padding: 16px 0;
     }
 
     .flash {
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
+      padding: 10px 16px; border-radius: 6px; margin-bottom: 16px;
+      font-size: 0.85rem; border: 1px solid transparent;
     }
-
-    .flash-success {
-      background: rgba(126, 231, 135, 0.12);
-      border-color: var(--green);
-      color: var(--green);
-    }
-
-    .flash-error {
-      background: rgba(247, 120, 122, 0.12);
-      border-color: var(--red);
-      color: var(--red);
-    }
+    .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
+    .flash-error { background: rgba(247, 120, 122, 0.12); border-color: var(--red); color: var(--red); }
 
     .footer {
-      margin-top: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      opacity: 0.4;
-      letter-spacing: 0.04em;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
+      margin-top: 16px; text-align: center; color: var(--text-muted);
+      font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4;
+      letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px;
     }
 
     @media (max-width: 600px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-      .header .user-area {
-        width: 100%;
-        justify-content: flex-start;
-      }
-      .card {
-        padding: 16px 18px;
-      }
-      .status-grid {
-        grid-template-columns: 1fr;
-      }
-      .login-card {
-        padding: 32px 16px;
-      }
+      .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .header .user-area { width: 100%; justify-content: flex-start; }
+      .card { padding: 16px 18px; }
+      .status-grid { grid-template-columns: 1fr; }
+      .login-card { padding: 32px 16px; }
     }
   </style>
 </head>
@@ -530,12 +292,20 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
+    // ─── Cache‑busting helper ─────────────────────────────
+    function getUrl(endpoint) {
+      const sep = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${sep}_=${Date.now()}`;
+    }
+
     // ─── API CALLS ──────────────────────────────────────────
     async function apiFetch(endpoint, options = {}) {
-      const res = await fetch(endpoint, {
+      const url = getUrl(endpoint);
+      const res = await fetch(url, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
+        cache: 'no-store',
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -564,7 +334,7 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        // If we are already showing content, re‑render to reflect new statuses
+        // Update the UI if we are already logged in
         if (currentUser) renderContent();
         else updateStatusDisplay();
       } catch {}
@@ -635,11 +405,13 @@
       if (btn) btn.textContent = 'Logging in...';
 
       try {
-        const res = await fetch('/auth/password', {
+        const url = getUrl('/auth/password');
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
           credentials: 'include',
+          cache: 'no-store',
         });
 
         if (btn) btn.textContent = originalText;
@@ -751,7 +523,7 @@
       `;
 
       mainContent.innerHTML = statusHtml + entriesHtml + infoCard;
-      renderEntries(); // populate list after DOM update
+      renderEntries();
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -845,12 +617,10 @@
     async function init() {
       await fetchUser();
       if (currentUser) {
-        // Poll for status updates every 15s, skip if typing
         setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
           await fetchStatuses();
         }, 15000);
-        // Poll entries every 30s
         setInterval(async () => {
           await fetchEntries();
         }, 30000);
