@@ -61,12 +61,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── DISABLE CACHING FOR API AND AUTH ROUTES ───────────
+// ─── CACHE DISABLE FOR API AND AUTH ROUTES ─────────────
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    // Remove any ETag and Last-Modified headers that might cause 304
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('ETag', '');
+    res.setHeader('Last-Modified', new Date().toUTCString());
   }
   next();
 });
