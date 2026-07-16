@@ -64,7 +64,6 @@ app.use((req, res, next) => {
 // ─── CACHE DISABLE FOR API AND AUTH ROUTES ─────────────
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-    // Remove any ETag and Last-Modified headers that might cause 304
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
@@ -152,6 +151,7 @@ app.get('/auth/discord/callback',
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
+      path: '/',
     });
     res.redirect('/admin');
   }
@@ -177,6 +177,7 @@ app.post('/auth/password', (req, res) => {
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
+      path: '/',
     });
     return res.json({ success: true });
   }
@@ -275,7 +276,7 @@ app.get('/api/public-entries', async (req, res) => {
 
 // ─── Logout ──────────────────────────────────────────────
 app.post('/api/logout', authMiddleware, (req, res) => {
-  res.clearCookie('auth_token');
+  res.clearCookie('auth_token', { path: '/' });
   res.json({ success: true });
 });
 
