@@ -398,9 +398,16 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
-    // ─── API CALLS (cache: no-store) ──────────────────────
+    // ─── API CALLS (with cache busting) ──────────────────
+    function getUrl(endpoint) {
+      // Add a timestamp to force a fresh request
+      const separator = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${separator}_=${Date.now()}`;
+    }
+
     async function apiFetch(endpoint, options = {}) {
-      const res = await fetch(endpoint, {
+      const url = getUrl(endpoint);
+      const res = await fetch(url, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
@@ -501,7 +508,8 @@
       if (btn) btn.textContent = 'Logging in...';
 
       try {
-        const res = await fetch('/auth/password', {
+        const url = getUrl('/auth/password');
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
@@ -618,7 +626,7 @@
       `;
 
       mainContent.innerHTML = statusHtml + entriesHtml + infoCard;
-      renderEntries(); // populate the list
+      renderEntries();
     }
 
     function renderStatusItem(key, icon, data, options) {
