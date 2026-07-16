@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 
   <style>
-    /* all CSS is exactly the same as you provided – no changes */
     * {
       margin: 0;
       padding: 0;
@@ -525,58 +524,6 @@
       color: var(--ink);
     }
 
-    .diary-entries {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      text-align: left;
-      max-height: 300px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .diary-entries::-webkit-scrollbar {
-      width: 4px;
-    }
-    .diary-entries::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .diary-entries::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 4px;
-    }
-
-    .diary-entry {
-      background: var(--tag-bg);
-      border-left: 2px solid var(--red-string);
-      padding: 6px 12px;
-      border-radius: 2px;
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-
-    .diary-entry .entry-content {
-      color: var(--ink);
-    }
-
-    .diary-entry .entry-time {
-      font-size: 0.6rem;
-      color: var(--ink-light);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      display: block;
-      margin-top: 2px;
-    }
-
-    .diary-empty {
-      color: var(--ink-light);
-      font-size: 0.85rem;
-      opacity: 0.5;
-      padding: 12px 0;
-      text-align: center;
-    }
-
     .diary-folder .folder-tags {
       display: flex;
       justify-content: center;
@@ -663,9 +610,6 @@
       }
       .footer .links {
         gap: 12px;
-      }
-      .diary-entries {
-        max-height: 200px;
       }
     }
 
@@ -811,10 +755,8 @@
       <!-- DIARY ENTRIES -->
       <div class="diary-folder">
         <span class="big-icon">📖</span>
-        <p><strong>Diary Entries</strong></p>
-        <div id="diaryEntriesContainer" class="diary-entries">
-          <!-- Rendered by JavaScript -->
-        </div>
+        <p><strong>Diary Entries</strong> · to be released</p>
+        <p style="font-size:clamp(0.7rem, 1.2vw, 0.8rem); opacity:0.6;">— writing about systems, code, life —</p>
         <div class="folder-tags">
           <span>reflections</span>
           <span>project logs</span>
@@ -951,6 +893,8 @@
 
     let statuses = { caffeine: null, activity: null, mood: null };
 
+    function now() { return new Date(); }
+
     function formatTimeAgo(date) {
       const diff = (Date.now() - date) / 1000;
       if (diff < 60) return 'just now';
@@ -1002,46 +946,9 @@
       }
     }
 
-    // ─── Diary Entries ──────────────────────────────────────
-    async function fetchDiaryEntries() {
-      try {
-        const res = await fetch('/api/public-entries');
-        if (!res.ok) throw new Error('Failed to fetch diary entries');
-        const data = await res.json();
-        renderDiaryEntries(data.entries || []);
-      } catch (e) {
-        console.warn('Could not fetch diary entries:', e);
-        renderDiaryEntries([]);
-      }
-    }
-
-    function renderDiaryEntries(entries) {
-      const container = document.getElementById('diaryEntriesContainer');
-      if (!container) return;
-
-      if (entries.length === 0) {
-        container.innerHTML = `<div class="diary-empty">No entries yet. Check back later.</div>`;
-        return;
-      }
-
-      container.innerHTML = entries.map(entry => `
-        <div class="diary-entry">
-          <div class="entry-content">${escapeHtml(entry.content)}</div>
-          <span class="entry-time">${formatTimeAgo(entry.timestamp)}</span>
-        </div>
-      `).join('');
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
     // ─── Initial render and periodic refresh ───
     async function init() {
       await fetchStatuses();
-      await fetchDiaryEntries();
       // Update age and red string after first render
       updateCaseAge();
       setTimeout(updateRedString, 100);
@@ -1051,8 +958,6 @@
         // Red string may need update if cards move (they shouldn't)
         updateRedString();
       }, 10000);
-      // Refresh diary entries every 30 seconds
-      setInterval(fetchDiaryEntries, 30000);
       // Red string on resize
       let resizeTimer;
       function handleResize() {
@@ -1060,7 +965,7 @@
         resizeTimer = setTimeout(() => updateRedString(), 150);
       }
       window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', () => setTimeout(updateRedString(), 300));
+      window.addEventListener('orientationchange', () => setTimeout(updateRedString, 300));
 
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => updateRedString());
