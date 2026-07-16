@@ -19,6 +19,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
+  // Statuses table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,6 +31,8 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
+
+  // Diary entries table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,22 +53,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging ─────────────────────────────────────────────
+// ─── Logging middleware ──────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
-
-// ─── DISABLE CACHING FOR API AND AUTH ROUTES ────────────
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    // Remove ETag to prevent 304
-    res.setHeader('ETag', '');
-    res.setHeader('Last-Modified', new Date().toUTCString());
-  }
   next();
 });
 
@@ -157,12 +147,21 @@ app.get('/auth/discord/callback',
 app.post('/auth/password', (req, res) => {
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
+  
+  console.log('[Auth] Password attempt');
+  console.log('[Auth] ADMIN_PASSWORD set?', !!expectedPassword);
+  
   if (!expectedPassword) {
-    return res.status(500).json({ error: 'Password authentication not configured.' });
+    return res.status(500).json({ 
+      error: 'Password authentication not configured.' 
+    });
   }
+  
   const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
+  
   if (trimmedInput === trimmedExpected) {
+    console.log('[Auth] ✅ Success');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET || 'dev-jwt-secret',
@@ -177,6 +176,8 @@ app.post('/auth/password', (req, res) => {
     });
     return res.json({ success: true });
   }
+  
+  console.log('[Auth] ❌ Failed');
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -270,13 +271,14 @@ app.get('/api/public-entries', async (req, res) => {
   res.json({ entries: result.rows });
 });
 
+// ─── Logout ──────────────────────────────────────────────
 app.post('/api/logout', authMiddleware, (req, res) => {
   res.clearCookie('auth_token', { path: '/' });
   res.json({ success: true });
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES
+//  STATIC FILES — Express handles everything
 // ════════════════════════════════════════════════════════════════
 
 app.use(express.static(path.join(__dirname, '../public')));
