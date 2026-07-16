@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── same styles as before ── */
+    /* ── same as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -192,7 +192,6 @@
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    /* ── diary styles ── */
     .entry-form textarea {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
       border-radius: 6px; padding: 10px 14px; color: var(--text);
@@ -316,14 +315,17 @@
 
     async function fetchUser() {
       try {
+        console.log('[fetchUser] Getting /api/me');
         const data = await apiFetch('/api/me');
+        console.log('[fetchUser] Data:', data);
         currentUser = data.user;
         renderHeader();
         if (currentUser) {
           await Promise.all([fetchStatuses(), fetchEntries()]);
         }
         renderContent();
-      } catch {
+      } catch (err) {
+        console.error('[fetchUser] Error:', err);
         currentUser = null;
         renderHeader();
         renderContent();
@@ -334,7 +336,6 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        // Update the UI if we are already logged in
         if (currentUser) renderContent();
         else updateStatusDisplay();
       } catch {}
@@ -406,6 +407,7 @@
 
       try {
         const url = getUrl('/auth/password');
+        console.log('[passwordLogin] POST to', url);
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -430,10 +432,11 @@
         }
 
         const data = await res.json();
+        console.log('[passwordLogin] Response:', data);
         if (data.success) {
-          await fetchUser();
-          showFlash('Logged in successfully');
-          input.value = '';
+          showFlash('Logged in successfully, redirecting...');
+          // 💡 Hard redirect to /admin to force the cookie to be sent with the page load
+          window.location.href = '/admin';
         } else {
           throw new Error(data.error || 'Login failed');
         }
@@ -615,6 +618,7 @@
 
     // ─── INIT ────────────────────────────────────────────────
     async function init() {
+      // On page load, check if the user is already authenticated
       await fetchUser();
       if (currentUser) {
         setInterval(async () => {
