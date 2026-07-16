@@ -30,7 +30,6 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-  // Entries table for diary
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,8 +50,22 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ─── Logging ─────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
+// ─── DISABLE CACHING FOR API AND AUTH ROUTES ────────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    // Remove ETag to prevent 304
+    res.setHeader('ETag', '');
+    res.setHeader('Last-Modified', new Date().toUTCString());
+  }
   next();
 });
 
@@ -134,6 +147,7 @@ app.get('/auth/discord/callback',
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
+      path: '/',
     });
     res.redirect('/admin');
   }
@@ -143,21 +157,12 @@ app.get('/auth/discord/callback',
 app.post('/auth/password', (req, res) => {
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
-  
-  console.log('[Auth] Password attempt');
-  console.log('[Auth] ADMIN_PASSWORD set?', !!expectedPassword);
-  
   if (!expectedPassword) {
-    return res.status(500).json({ 
-      error: 'Password authentication not configured.' 
-    });
+    return res.status(500).json({ error: 'Password authentication not configured.' });
   }
-  
   const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
-  
   if (trimmedInput === trimmedExpected) {
-    console.log('[Auth] ✅ Success');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET || 'dev-jwt-secret',
@@ -168,11 +173,10 @@ app.post('/auth/password', (req, res) => {
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
+      path: '/',
     });
     return res.json({ success: true });
   }
-  
-  console.log('[Auth] ❌ Failed');
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -267,7 +271,7 @@ app.get('/api/public-entries', async (req, res) => {
 });
 
 app.post('/api/logout', authMiddleware, (req, res) => {
-  res.clearCookie('auth_token');
+  res.clearCookie('auth_token', { path: '/' });
   res.json({ success: true });
 });
 
