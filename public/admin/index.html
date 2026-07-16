@@ -654,8 +654,8 @@ function renderHeader() {
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
             ${renderStatusItem('caffeine', '☕', caffeine, [
-              { value: 'tea', label: '🍵 Tea' },
-              { value: 'coffee', label: '☕ Coffee' },
+              { value: 'tea', label: '🫖 Tea' },
+              { value: 'coffee', label: '☕️ Coffee' },
             ])}
             ${renderStatusItem('activity', '👤', activity, [
               { value: 'coding', label: '💻 Coding' },
@@ -666,14 +666,18 @@ function renderHeader() {
               { value: 'writing', label: '✍️ Writing' },
               { value: 'thinking', label: '🤔 Thinking' },
               { value: 'resting', label: '😴 Resting' },
+              { value: 'yum', label: '🍴 Eating' },
+              { value: 'out', label: '🕺 Hanging out' },
             ])}
             ${renderStatusItem('mood', '🎭', mood, [
               { value: 'great', label: '😄 Great' },
               { value: 'good', label: '🙂 Good' },
               { value: 'okay', label: '😐 Okay' },
-              { value: 'meh', label: '😕 Meh' },
+              { value: 'mid', label: '😕 Meh' },
               { value: 'bad', label: '😞 Bad' },
               { value: 'tired', label: '🥱 Tired' },
+              { value: 'hungry', label: '😵‍💫 Hungry' },
+              { value: 'sheleftmeonread', label: '😪 Lonely' },
             ])}
           </div>
         </div>
