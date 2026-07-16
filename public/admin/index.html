@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── same as before ── */
+    /* ── same CSS as before, no changes ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -404,31 +404,41 @@
 
     async function apiFetch(endpoint, options = {}) {
       const url = getUrl(endpoint);
+      console.log(`[DEBUG] apiFetch: ${url}`);
       const res = await fetch(url, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
         cache: 'no-store',
       });
+      console.log(`[DEBUG] apiFetch status: ${res.status}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || 'Request failed');
       }
-      return res.json();
+      const json = await res.json();
+      console.log(`[DEBUG] apiFetch response:`, json);
+      return json;
     }
 
     async function fetchUser() {
+      console.log('[DEBUG] fetchUser called');
       try {
         const data = await apiFetch('/api/me');
+        console.log('[DEBUG] fetchUser data:', data);
         currentUser = data.user;
+        console.log('[DEBUG] currentUser set to:', currentUser);
         renderHeader();
         if (currentUser) {
+          console.log('[DEBUG] User authenticated, fetching statuses and entries');
           await Promise.all([fetchStatuses(), fetchEntries()]);
           renderContent();
         } else {
+          console.log('[DEBUG] No user, showing login');
           renderContent();
         }
-      } catch {
+      } catch (err) {
+        console.error('[DEBUG] fetchUser error:', err);
         currentUser = null;
         renderHeader();
         renderContent();
@@ -440,7 +450,7 @@
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
         updateStatusDisplay();
-      } catch {}
+      } catch (e) { console.error('fetchStatuses error:', e); }
     }
 
     async function fetchEntries() {
@@ -448,7 +458,7 @@
         const data = await apiFetch('/api/entries');
         entries = data.entries || [];
         renderEntries();
-      } catch {}
+      } catch (e) { console.error('fetchEntries error:', e); }
     }
 
     async function setStatus(key, value, display) {
@@ -506,6 +516,7 @@
 
       try {
         const url = getUrl('/auth/password');
+        console.log(`[DEBUG] POST /auth/password to ${url}`);
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -513,6 +524,7 @@
           credentials: 'include',
           cache: 'no-store',
         });
+        console.log(`[DEBUG] password login status: ${res.status}`);
 
         if (btn) btn.textContent = originalText;
 
@@ -528,9 +540,11 @@
         }
 
         const data = await res.json();
+        console.log('[DEBUG] password login response:', data);
         if (data.success) {
-          // ✅ Reload the page to ensure the cookie is sent with the initial request
-          window.location.reload();
+          showFlash('Logged in successfully, redirecting...');
+          // Force a full page navigation to /admin to ensure cookie is sent
+          window.location.href = '/admin';
         } else {
           throw new Error(data.error || 'Login failed');
         }
@@ -550,6 +564,7 @@
     }
 
     function renderContent() {
+      console.log('[DEBUG] renderContent called, currentUser:', currentUser);
       if (!currentUser) {
         mainContent.innerHTML = `
           <div class="card login-card">
@@ -716,8 +731,11 @@
     let statusInterval, entryInterval;
 
     async function init() {
+      console.log('[DEBUG] init called');
       await fetchUser();
+      console.log('[DEBUG] after fetchUser, currentUser:', currentUser);
       if (currentUser) {
+        console.log('[DEBUG] starting intervals');
         statusInterval = setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
           await fetchStatuses();
