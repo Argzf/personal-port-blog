@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── same styles as the old version, with added entry styles ── */
+    /* same styles as before – no changes */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -292,12 +292,19 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
-    // ─── API CALLS ──────────────────────────────────────────
+    // ─── API CALLS WITH CACHE BUSTING ──────────────────────
+    function getUrl(endpoint) {
+      const sep = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${sep}_=${Date.now()}`;
+    }
+
     async function apiFetch(endpoint, options = {}) {
-      const res = await fetch(endpoint, {
+      const url = getUrl(endpoint);
+      const res = await fetch(url, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
+        cache: 'no-store',
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -313,8 +320,10 @@
         renderHeader();
         if (currentUser) {
           await Promise.all([fetchStatuses(), fetchEntries()]);
+          renderContent();
+        } else {
+          renderContent();
         }
-        renderContent();
       } catch {
         currentUser = null;
         renderHeader();
@@ -326,9 +335,8 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        // Update the status cards if they exist
-        if (currentUser) renderContent(); // quick full re-render to update statuses
-        else updateStatusDisplay(); // fallback
+        if (currentUser) renderContent();
+        else updateStatusDisplay();
       } catch {}
     }
 
@@ -394,11 +402,13 @@
       if (btn) btn.textContent = 'Logging in...';
 
       try {
-        const res = await fetch('/auth/password', {
+        const url = getUrl('/auth/password');
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
           credentials: 'include',
+          cache: 'no-store',
         });
 
         if (btn) btn.textContent = originalText;
@@ -508,7 +518,7 @@
       `;
 
       mainContent.innerHTML = statusHtml + entriesHtml + infoCard;
-      renderEntries(); // populate the list after DOM update
+      renderEntries();
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -602,12 +612,10 @@
     async function init() {
       await fetchUser();
       if (currentUser) {
-        // Poll for status updates every 15s
         setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
           await fetchStatuses();
         }, 15000);
-        // Poll entries every 30s
         setInterval(async () => {
           await fetchEntries();
         }, 30000);
