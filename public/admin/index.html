@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── reset & tokens ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -164,6 +163,7 @@
       transition: border-color 0.2s;
     }
     .status-item:hover { border-color: var(--accent-dim); }
+
     .status-item .label {
       font-size: 0.6rem;
       text-transform: uppercase;
@@ -176,6 +176,7 @@
       gap: 6px;
       margin-bottom: 4px;
     }
+
     .status-item .current {
       font-size: 1.1rem;
       font-weight: 600;
@@ -183,6 +184,7 @@
       min-height: 1.8rem;
     }
     .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
+
     .status-item .meta {
       font-size: 0.65rem;
       color: var(--text-muted);
@@ -197,6 +199,7 @@
       flex-wrap: wrap;
       gap: 4px;
     }
+
     .status-item .actions button {
       background: transparent;
       border: 1px solid var(--border);
@@ -210,16 +213,19 @@
       font-family: var(--font);
       line-height: 1.8;
     }
+
     .status-item .actions button:hover {
       background: var(--surface-2);
       border-color: var(--text-muted);
       color: var(--text);
     }
+
     .status-item .actions button.active {
       background: var(--accent);
       border-color: var(--accent);
       color: var(--bg);
     }
+
     .status-item .actions button.active-tea {
       background: #b88a5e;
       border-color: #b88a5e;
@@ -230,11 +236,7 @@
       border-color: #6f4e37;
       color: #F7F5F2;
     }
-    .status-item .actions button.active-mood {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
+
     .status-item .clear-btn {
       background: transparent;
       border: none;
@@ -251,7 +253,10 @@
 
     /* ── flash ── */
     .flash {
-      padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.85rem;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
       border: 1px solid transparent;
     }
     .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
@@ -259,9 +264,15 @@
 
     /* ── footer ── */
     .footer {
-      margin-top: 16px; text-align: center; color: var(--text-muted);
-      font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4;
-      letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px;
+      margin-top: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      opacity: 0.4;
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
     }
 
     @media (max-width: 600px) {
@@ -287,11 +298,7 @@
   <script>
     // ─── STATE ──────────────────────────────────────────────
     let currentUser = null;
-    let statuses = {
-      caffeine: null,
-      activity: null,
-      mood: null,
-    };
+    let statuses = { caffeine: null, activity: null, mood: null };
 
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
@@ -354,7 +361,7 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        renderStatuses();
+        updateStatusDisplay();
       } catch {}
     }
 
@@ -457,79 +464,92 @@
         return;
       }
 
-      renderStatuses();
-    }
-
-    function renderStatuses() {
       const caffeine = getStatus('caffeine');
       const activity = getStatus('activity');
       const mood = getStatus('mood');
-
-      const caffeineDisplay = caffeine ? caffeine.display || caffeine.value : null;
-      const caffeineMeta = caffeine ? `${formatTimeAgo(caffeine.timestamp)} · ${formatExact(caffeine.timestamp)}` : 'not logged';
-
-      const activityDisplay = activity ? activity.display || activity.value : null;
-      const activityMeta = activity ? `${formatTimeAgo(activity.timestamp)} · ${formatExact(activity.timestamp)}` : 'not logged';
-
-      const moodDisplay = mood ? mood.display || mood.value : null;
-      const moodMeta = mood ? `${formatTimeAgo(mood.timestamp)} · ${formatExact(mood.timestamp)}` : 'not logged';
 
       mainContent.innerHTML = `
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
-
-            <!-- Caffeine -->
-            <div class="status-item">
-              <div class="label">☕ caffeine</div>
-              <div class="current">${caffeineDisplay ? caffeineDisplay : '<span class="empty">—</span>'}</div>
-              <div class="meta">${caffeineMeta}</div>
-              <div class="actions">
-                <button class="${caffeineDisplay === '🍵 Tea' ? 'active active-tea' : ''}" onclick="setStatus('caffeine','tea','🍵 Tea')">🍵 Tea</button>
-                <button class="${caffeineDisplay === '☕ Coffee' ? 'active active-coffee' : ''}" onclick="setStatus('caffeine','coffee','☕ Coffee')">☕ Coffee</button>
-                <button class="clear-btn" onclick="clearStatus('caffeine')">✕ clear</button>
-              </div>
-            </div>
-
-            <!-- Activity -->
-            <div class="status-item">
-              <div class="label">👤 activity</div>
-              <div class="current">${activityDisplay ? activityDisplay : '<span class="empty">—</span>'}</div>
-              <div class="meta">${activityMeta}</div>
-              <div class="actions">
-                <button class="${activityDisplay === '💻 Coding' ? 'active' : ''}" onclick="setStatus('activity','coding','💻 Coding')">💻 Coding</button>
-                <button class="${activityDisplay === '📖 Reading' ? 'active' : ''}" onclick="setStatus('activity','reading','📖 Reading')">📖 Reading</button>
-                <button class="${activityDisplay === '🗺️ Exploring' ? 'active' : ''}" onclick="setStatus('activity','exploring','🗺️ Exploring')">🗺️ Exploring</button>
-                <button class="${activityDisplay === '🥾 Hiking' ? 'active' : ''}" onclick="setStatus('activity','hiking','🥾 Hiking')">🥾 Hiking</button>
-                <button class="${activityDisplay === '✍️ Writing' ? 'active' : ''}" onclick="setStatus('activity','writing','✍️ Writing')">✍️ Writing</button>
-                <button class="${activityDisplay === '🤔 Thinking' ? 'active' : ''}" onclick="setStatus('activity','thinking','🤔 Thinking')">🤔 Thinking</button>
-                <button class="${activityDisplay === '😴 Resting' ? 'active' : ''}" onclick="setStatus('activity','resting','😴 Resting')">😴 Resting</button>
-                <button class="clear-btn" onclick="clearStatus('activity')">✕ clear</button>
-              </div>
-            </div>
-
-            <!-- Mood -->
-            <div class="status-item">
-              <div class="label">🎭 mood</div>
-              <div class="current">${moodDisplay ? moodDisplay : '<span class="empty">—</span>'}</div>
-              <div class="meta">${moodMeta}</div>
-              <div class="actions">
-                <button class="${moodDisplay === '😄 Great' ? 'active active-mood' : ''}" onclick="setStatus('mood','great','😄 Great')">😄 Great</button>
-                <button class="${moodDisplay === '🙂 Good' ? 'active active-mood' : ''}" onclick="setStatus('mood','good','🙂 Good')">🙂 Good</button>
-                <button class="${moodDisplay === '😐 Okay' ? 'active active-mood' : ''}" onclick="setStatus('mood','okay','😐 Okay')">😐 Okay</button>
-                <button class="${moodDisplay === '😕 Meh' ? 'active active-mood' : ''}" onclick="setStatus('mood','meh','😕 Meh')">😕 Meh</button>
-                <button class="${moodDisplay === '😞 Bad' ? 'active active-mood' : ''}" onclick="setStatus('mood','bad','😞 Bad')">😞 Bad</button>
-                <button class="clear-btn" onclick="clearStatus('mood')">✕ clear</button>
-              </div>
-            </div>
-
+            ${renderStatusItem('caffeine', '☕', caffeine, [
+              { value: 'tea', label: '🍵 Tea' },
+              { value: 'coffee', label: '☕ Coffee' },
+            ])}
+            ${renderStatusItem('activity', '👤', activity, [
+              { value: 'coding', label: '💻 Coding' },
+              { value: 'reading', label: '📖 Reading' },
+              { value: 'exploring', label: '🗺️ Exploring' },
+              { value: 'hiking', label: '🥾 Hiking' },
+              { value: 'writing', label: '✍️ Writing' },
+              { value: 'thinking', label: '🤔 Thinking' },
+              { value: 'resting', label: '😴 Resting' },
+            ])}
+            ${renderStatusItem('mood', '🎭', mood, [
+              { value: 'great', label: '😄 Great' },
+              { value: 'good', label: '🙂 Good' },
+              { value: 'okay', label: '😐 Okay' },
+              { value: 'meh', label: '😕 Meh' },
+              { value: 'bad', label: '😞 Bad' },
+            ])}
           </div>
         </div>
-
         <div class="card" style="border-color:var(--border); opacity:0.7;">
           <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses reset automatically at midnight (Tehran time).</p>
         </div>
       `;
+    }
+
+    function renderStatusItem(key, icon, data, options) {
+      const display = data ? data.display || data.value : null;
+      const meta = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
+
+      const optionsHtml = options.map(opt => {
+        const active = display === opt.label || (data && data.value === opt.value);
+        return `<button class="${active ? 'active' : ''}" onclick="setStatus('${key}','${opt.value}','${opt.label}')">${opt.label}</button>`;
+      }).join('');
+
+      return `
+        <div class="status-item">
+          <div class="label">${icon} ${key}</div>
+          <div class="current">${display ? display : '<span class="empty">—</span>'}</div>
+          <div class="meta">${meta}</div>
+          <div class="actions">
+            ${optionsHtml}
+            <button class="clear-btn" onclick="clearStatus('${key}')">✕ clear</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ─── Update display without full re-render ─────────────
+    function updateStatusDisplay() {
+      const keys = ['caffeine', 'activity', 'mood'];
+      for (const key of keys) {
+        const data = statuses[key];
+        const displayEl = document.getElementById(`display-${key}`);
+        const metaEl = document.getElementById(`meta-${key}`);
+        if (displayEl) {
+          displayEl.innerHTML = data ? (data.display || data.value) : '<span class="empty">—</span>';
+        }
+        if (metaEl) {
+          metaEl.textContent = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
+        }
+        // Update active buttons
+        const card = document.querySelector(`.status-item:has(.label:contains(${key}))`);
+        // Alternative: find by label text
+        const items = document.querySelectorAll('.status-item');
+        for (const item of items) {
+          const label = item.querySelector('.label');
+          if (label && label.textContent.includes(key)) {
+            const btns = item.querySelectorAll('.actions button:not(.clear-btn)');
+            btns.forEach(btn => {
+              const isActive = data && btn.textContent.trim() === data.display;
+              btn.classList.toggle('active', isActive);
+            });
+          }
+        }
+      }
     }
 
     // ─── INIT ────────────────────────────────────────────────
@@ -541,7 +561,7 @@
         statusInterval = setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT') return;
           await fetchStatuses();
-        }, 10000);
+        }, 15000);
       }
     }
 
