@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 
   <style>
-    /* ── variables ── */
+    /* ── same as before ── */
     * {
       margin: 0;
       padding: 0;
@@ -75,7 +75,6 @@
 
     .container { max-width: 860px; width: 100%; }
 
-    /* ── header ── */
     .board-header {
       display: flex;
       flex-wrap: wrap;
@@ -170,10 +169,8 @@
       border-radius: 0 0 2px 2px;
     }
 
-    /* ── content ── */
     .board-content { display: flex; flex-direction: column; gap: clamp(18px, 3vw, 28px); }
 
-    /* ── polaroid grid ── */
     .polaroid-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
@@ -315,7 +312,6 @@
       text-transform: uppercase;
     }
 
-    /* ── subject profile ── */
     .subject-profile {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -401,7 +397,6 @@
       color: var(--red-string);
     }
 
-    /* ── sticky notes ── */
     .sticky-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -469,7 +464,6 @@
       opacity: 0.7;
     }
 
-    /* ── diary folder ── */
     .diary-folder {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -586,7 +580,6 @@
       color: var(--ink-light);
     }
 
-    /* ── footer ── */
     .footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -625,56 +618,23 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── responsive ── */
     @media (max-width: 600px) {
-      .board-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .board-header .case-ref {
-        text-align: left;
-        width: 100%;
-      }
-      .board-header .case-ref .age-highlight {
-        display: inline;
-      }
-      .polaroid-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 32px 16px;
-      }
-      .sticky-grid {
-        grid-template-columns: 1fr;
-      }
-      .subject-profile {
-        padding: 16px;
-      }
-      .subject-profile .tags .tag {
-        font-size: 0.55rem;
-      }
-      .footer .links {
-        gap: 12px;
-      }
-      .diary-entries {
-        max-height: 200px;
-      }
+      .board-header { flex-direction: column; align-items: flex-start; }
+      .board-header .case-ref { text-align: left; width: 100%; }
+      .board-header .case-ref .age-highlight { display: inline; }
+      .polaroid-grid { grid-template-columns: 1fr 1fr; gap: 32px 16px; }
+      .sticky-grid { grid-template-columns: 1fr; }
+      .subject-profile { padding: 16px; }
+      .subject-profile .tags .tag { font-size: 0.55rem; }
+      .footer .links { gap: 12px; }
+      .diary-entries { max-height: 200px; }
     }
 
     @media (max-width: 420px) {
-      .polaroid-grid {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-      .board-header h1 {
-        font-size: 1.3rem;
-      }
-      .board-header h1 .sub {
-        font-size: 0.7rem;
-        padding: 0 8px;
-        white-space: normal;
-      }
-      .board-header .badge {
-        font-size: 0.5rem;
-      }
+      .polaroid-grid { grid-template-columns: 1fr; gap: 32px; }
+      .board-header h1 { font-size: 1.3rem; }
+      .board-header h1 .sub { font-size: 0.7rem; padding: 0 8px; white-space: normal; }
+      .board-header .badge { font-size: 0.5rem; }
     }
   </style>
 </head>
@@ -682,7 +642,6 @@
 
   <div class="container">
 
-    <!-- ═══ HEADER ═══ -->
     <div class="board-header">
       <div>
         <div class="badge">🕵️ active investigation</div>
@@ -696,17 +655,14 @@
       <div class="red-string-decoration"></div>
     </div>
 
-    <!-- ═══ CONTENT ═══ -->
     <div class="board-content">
 
-      <!-- STATUS POLAROIDS -->
       <div style="position:relative;">
         <div style="font-family:var(--font-mono); font-size:clamp(0.5rem, 0.9vw, 0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
           ══ observation log ══
         </div>
         <div class="polaroid-grid" id="statusGrid">
 
-          <!-- Red string SVG (drawn by JS) -->
           <svg class="red-string-svg" id="redStringSvg" preserveAspectRatio="none">
             <path id="stringPath" d="" />
             <circle id="dotA" cx="0" cy="0" r="0" />
@@ -714,7 +670,6 @@
             <circle id="dotC" cx="0" cy="0" r="0" />
           </svg>
 
-          <!-- EXHIBIT A -->
           <div class="polaroid" style="--rot:-1.5deg;" id="caffeineItem">
             <span class="photo-icon">☕</span>
             <div class="label">caffeine</div>
@@ -723,7 +678,6 @@
             <span class="evidence-tag">EXHIBIT A</span>
           </div>
 
-          <!-- EXHIBIT B -->
           <div class="polaroid" style="--rot:2deg;" id="activityItem">
             <span class="photo-icon">👤</span>
             <div class="label">activity</div>
@@ -732,7 +686,6 @@
             <span class="evidence-tag">EXHIBIT B</span>
           </div>
 
-          <!-- EXHIBIT C -->
           <div class="polaroid" style="--rot:-0.8deg;" id="moodItem">
             <span class="photo-icon">🎭</span>
             <div class="label">mood</div>
@@ -744,7 +697,6 @@
         </div>
       </div>
 
-      <!-- SUBJECT PROFILE -->
       <div class="subject-profile">
         <span class="stamp">● subject profile</span>
         <h2>
@@ -764,7 +716,6 @@
         </div>
       </div>
 
-      <!-- STICKY NOTES -->
       <div class="sticky-grid">
 
         <div class="sticky" style="--rot:-1deg;">
@@ -798,13 +749,10 @@
 
       </div>
 
-      <!-- DIARY ENTRIES -->
       <div class="diary-folder">
         <span class="big-icon">📖</span>
         <p><strong>Diary Entries</strong></p>
-        <div id="diaryEntriesContainer" class="diary-entries">
-          <!-- Rendered by JS -->
-        </div>
+        <div id="diaryEntriesContainer" class="diary-entries"></div>
         <div class="folder-tags">
           <span>reflections</span>
           <span>project logs</span>
@@ -814,7 +762,6 @@
 
     </div>
 
-    <!-- ═══ FOOTER ═══ -->
     <footer class="footer">
       <div class="links">
         <a href="#" target="_blank">GitHub</a>
@@ -930,9 +877,15 @@
       const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
 
+    function getUrl(endpoint) {
+      const separator = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${separator}_=${Date.now()}`;
+    }
+
     async function fetchStatuses() {
       try {
-        const res = await fetch('/api/statuses', { credentials: 'include', cache: 'no-store' });
+        const url = getUrl('/api/statuses');
+        const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch statuses');
         const data = await res.json();
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
@@ -969,7 +922,8 @@
     // ─── Diary entries ──────────────────────────────────────
     async function fetchDiaryEntries() {
       try {
-        const res = await fetch('/api/public-entries', { cache: 'no-store' });
+        const url = getUrl('/api/public-entries');
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch entries');
         const data = await res.json();
         renderDiaryEntries(data.entries || []);
