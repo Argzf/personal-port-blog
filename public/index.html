@@ -524,6 +524,59 @@
       color: var(--ink);
     }
 
+    /* ── Diary entries list ── */
+    .diary-entries {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .diary-entries::-webkit-scrollbar {
+      width: 4px;
+    }
+    .diary-entries::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .diary-entries::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .diary-entry {
+      background: var(--tag-bg);
+      border-left: 2px solid var(--red-string);
+      padding: 6px 12px;
+      border-radius: 2px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .diary-entry .entry-content {
+      color: var(--ink);
+    }
+
+    .diary-entry .entry-time {
+      font-size: 0.6rem;
+      color: var(--ink-light);
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .diary-empty {
+      color: var(--ink-light);
+      font-size: 0.85rem;
+      opacity: 0.5;
+      padding: 12px 0;
+      text-align: center;
+    }
+
     .diary-folder .folder-tags {
       display: flex;
       justify-content: center;
@@ -610,6 +663,9 @@
       }
       .footer .links {
         gap: 12px;
+      }
+      .diary-entries {
+        max-height: 200px;
       }
     }
 
@@ -755,8 +811,10 @@
       <!-- DIARY ENTRIES -->
       <div class="diary-folder">
         <span class="big-icon">📖</span>
-        <p><strong>Diary Entries</strong> · to be released</p>
-        <p style="font-size:clamp(0.7rem, 1.2vw, 0.8rem); opacity:0.6;">— writing about systems, code, life —</p>
+        <p><strong>Diary Entries</strong></p>
+        <div id="diaryEntriesContainer" class="diary-entries">
+          <!-- Rendered by JavaScript -->
+        </div>
         <div class="folder-tags">
           <span>reflections</span>
           <span>project logs</span>
@@ -782,7 +840,7 @@
 
   </div>
 
-<script>
+  <script>
     // ─── Dynamic Age (Tehran timezone) ───
     function calculateAge() {
       const birth = new Date('2012-05-10');
@@ -889,8 +947,7 @@
       }
     }
 
-    // ─── Status logic (fetch from API, display "ago" only) ───
-
+    // ─── Status logic (fetch from API) ──────────────────────
     let statuses = { caffeine: null, activity: null, mood: null };
 
     function now() { return new Date(); }
@@ -909,13 +966,10 @@
         const res = await fetch('/api/statuses', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch statuses');
         const data = await res.json();
-        // data.statuses is { caffeine, activity, mood } each with value, display, timestamp, date
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
         renderStatuses();
       } catch (e) {
-        console.warn('Could not fetch statuses, using fallback:', e);
-        // Optionally fall back to localStorage if API fails? Better to keep consistent.
-        // We'll just leave empty.
+        console.warn('Could not fetch statuses:', e);
       }
     }
 
@@ -940,24 +994,63 @@
 
       displayEl.textContent = data.display || data.value;
       if (metaEl) {
-        // Only show "ago" time, no exact date
         const timestamp = new Date(data.timestamp);
         metaEl.textContent = formatTimeAgo(timestamp);
       }
     }
 
-    // ─── Initial render and periodic refresh ───
+    // ─── Diary entries ──────────────────────────────────────
+    async function fetchDiaryEntries() {
+      try {
+        const res = await fetch('/api/public-entries');
+        if (!res.ok) throw new Error('Failed to fetch entries');
+        const data = await res.json();
+        renderDiaryEntries(data.entries || []);
+      } catch (e) {
+        console.warn('Could not fetch diary entries:', e);
+        renderDiaryEntries([]);
+      }
+    }
+
+    function renderDiaryEntries(entries) {
+      const container = document.getElementById('diaryEntriesContainer');
+      if (!container) return;
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="diary-empty">No entries yet. Check back later.</div>`;
+        return;
+      }
+
+      container.innerHTML = entries.map(entry => `
+        <div class="diary-entry">
+          <div class="entry-content">${escapeHtml(entry.content)}</div>
+          <span class="entry-time">${formatTimeAgo(entry.timestamp)}</span>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ─── Initial render and periodic refresh ──────────────────
     async function init() {
       await fetchStatuses();
-      // Update age and red string after first render
+      await fetchDiaryEntries();
       updateCaseAge();
       setTimeout(updateRedString, 100);
-      // Refresh statuses every 10 seconds
+
+      // Refresh statuses every 10s
       setInterval(async () => {
         await fetchStatuses();
-        // Red string may need update if cards move (they shouldn't)
         updateRedString();
       }, 10000);
+
+      // Refresh diary entries every 30s
+      setInterval(fetchDiaryEntries, 30000);
+
       // Red string on resize
       let resizeTimer;
       function handleResize() {
@@ -972,13 +1065,12 @@
         const grid = document.getElementById('statusGrid');
         if (grid) ro.observe(grid);
       }
-      // Also update red string periodically
       setInterval(updateRedString, 2000);
     }
 
     init();
     console.log('🕵️ Arsan\'s Archive · connected to API');
-</script>
+  </script>
 
 </body>
 </html>
