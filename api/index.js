@@ -30,14 +30,6 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-  await turso.execute(`
-    CREATE TABLE IF NOT EXISTS entries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      content TEXT NOT NULL,
-      timestamp INTEGER NOT NULL,
-      date TEXT NOT NULL
-    )
-  `);
 }
 initDatabase();
 
@@ -50,21 +42,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging ─────────────────────────────────────────────
+// ─── Logging middleware ──────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
-
-// ─── Cache‑control for API & auth routes ────────────────
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('ETag', '');
-    res.setHeader('Last-Modified', new Date().toUTCString());
-  }
   next();
 });
 
@@ -117,10 +97,8 @@ function verifyToken(token) {
 // ─── Auth Middleware ─────────────────────────────────────
 function authMiddleware(req, res, next) {
   const token = req.cookies?.auth_token;
-  console.log(`[Auth] Token present: ${!!token}`);
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   const user = verifyToken(token);
-  console.log(`[Auth] User verified: ${!!user}`);
   if (!user) return res.status(401).json({ error: 'Invalid token' });
   req.user = user;
   next();
@@ -148,7 +126,6 @@ app.get('/auth/discord/callback',
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
-      path: '/',
     });
     res.redirect('/admin');
   }
@@ -183,9 +160,7 @@ app.post('/auth/password', (req, res) => {
       secure: process.env.VERCEL === '1',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
-      path: '/',
     });
-    console.log('[Auth] Cookie set');
     return res.json({ success: true });
   }
   
@@ -193,7 +168,11 @@ app.post('/auth/password', (req, res) => {
   res.status(401).json({ error: 'Invalid password' });
 });
 
-// ─── Status Routes ──────────────────────────────────────
+// ─── API Routes ──────────────────────────────────────────
+app.get('/api/me', authMiddleware, (req, res) => {
+  res.json({ user: req.user });
+});
+
 app.get('/api/statuses', authMiddleware, async (req, res) => {
   const today = getTehranDate();
   const result = await turso.execute({
@@ -244,56 +223,19 @@ app.delete('/api/status', authMiddleware, async (req, res) => {
   res.json({ success: true });
 });
 
-// ─── Diary Entries Routes ──────────────────────────────
-app.get('/api/entries', authMiddleware, async (req, res) => {
-  const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp, date FROM entries ORDER BY timestamp DESC LIMIT 50',
-  });
-  res.json({ entries: result.rows });
-});
-
-app.post('/api/entries', authMiddleware, async (req, res) => {
-  const { content } = req.body;
-  if (!content || content.trim().length === 0) {
-    return res.status(400).json({ error: 'Content is required' });
-  }
-  const timestamp = Date.now();
-  const date = getTehranDate();
-  await turso.execute({
-    sql: 'INSERT INTO entries (content, timestamp, date) VALUES (?, ?, ?)',
-    args: [content.trim(), timestamp, date],
-  });
-  res.json({ success: true });
-});
-
-app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  await turso.execute({
-    sql: 'DELETE FROM entries WHERE id = ?',
-    args: [id],
-  });
-  res.json({ success: true });
-});
-
-// ─── Public entries for homepage ────────────────────────
-app.get('/api/public-entries', async (req, res) => {
-  const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp FROM entries ORDER BY timestamp DESC LIMIT 10',
-  });
-  res.json({ entries: result.rows });
-});
-
 app.post('/api/logout', authMiddleware, (req, res) => {
-  res.clearCookie('auth_token', { path: '/' });
+  res.clearCookie('auth_token');
   res.json({ success: true });
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES
+//  STATIC FILES — Express handles everything
 // ════════════════════════════════════════════════════════════════
 
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Admin route
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
@@ -302,6 +244,7 @@ app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
+// Fallback: serve main site for any other route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
