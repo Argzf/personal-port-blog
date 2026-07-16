@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── same CSS as before, no changes ── */
+    /* ── same styles as the old version, with added entry styles ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -86,8 +86,6 @@
       font-family: var(--font);
       text-decoration: none;
       display: inline-block;
-      line-height: 1.6;
-      text-align: center;
     }
     .btn:hover { background: var(--border); border-color: var(--accent-dim); }
     .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -97,8 +95,6 @@
     .btn-danger { border-color: var(--red); color: var(--red); }
     .btn-danger:hover { background: var(--red); color: var(--bg); }
     .btn-block { display: block; width: 100%; text-align: center; }
-    .btn-sm { font-size: 0.6rem; padding: 2px 12px; line-height: 1.6; background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px; color: var(--text); cursor: pointer; transition: 0.15s; font-family: var(--font); }
-    .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
 
     .card {
       background: var(--surface);
@@ -163,184 +159,86 @@
     .status-item:hover { border-color: var(--accent-dim); }
 
     .status-item .label {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
+      display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
     }
 
     .status-item .current {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 2px;
-      min-height: 1.8rem;
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem;
     }
     .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
 
     .status-item .meta {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      margin-bottom: 10px;
-      min-height: 1.2rem;
+      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
+      opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem;
     }
 
     .status-item .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      display: flex; flex-wrap: wrap; gap: 4px;
     }
-
     .status-item .actions button {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 2px 12px;
-      font-size: 0.65rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      font-family: var(--font);
-      line-height: 1.8;
+      background: transparent; border: 1px solid var(--border); border-radius: 30px;
+      padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8;
     }
-
-    .status-item .actions button:hover {
-      background: var(--surface-2);
-      border-color: var(--text-muted);
-      color: var(--text);
-    }
-
-    .status-item .actions button.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-tea {
-      background: #b88a5e;
-      border-color: #b88a5e;
-      color: var(--bg);
-    }
-    .status-item .actions button.active-coffee {
-      background: #6f4e37;
-      border-color: #6f4e37;
-      color: #F7F5F2;
-    }
+    .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
+    .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 
     .status-item .clear-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.55rem;
-      cursor: pointer;
-      opacity: 0.3;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 2px 4px;
-      margin-left: 4px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
+      font-family: var(--font); padding: 2px 4px; margin-left: 4px;
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
+    /* ── diary entries ── */
     .entry-form textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: var(--font);
-      resize: vertical;
-      min-height: 80px;
-      outline: none;
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px; color: var(--text);
+      font-size: 0.9rem; font-family: var(--font); resize: vertical;
+      min-height: 80px; outline: none;
     }
     .entry-form textarea:focus { border-color: var(--accent); }
-    .entry-form .submit-row {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
+    .entry-form .submit-row { display: flex; justify-content: flex-end; margin-top: 8px; }
 
     .entry-list {
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      margin-top: 16px; display: flex; flex-direction: column; gap: 10px;
     }
 
     .entry-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 16px; display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px;
     }
-    .entry-item .content {
-      flex: 1;
-      font-size: 0.9rem;
-      word-break: break-word;
-    }
+    .entry-item .content { flex: 1; font-size: 0.9rem; word-break: break-word; }
     .entry-item .timestamp {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      white-space: nowrap;
-      margin-top: 2px;
+      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
+      opacity: 0.6; white-space: nowrap; margin-top: 2px;
     }
     .entry-item .delete-btn {
-      background: transparent;
-      border: none;
-      color: var(--red);
-      font-size: 0.7rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 0 4px;
-      flex-shrink: 0;
+      background: transparent; border: none; color: var(--red); font-size: 0.7rem;
+      cursor: pointer; opacity: 0.4; transition: opacity 0.2s; font-family: var(--font);
+      padding: 0 4px; flex-shrink: 0;
     }
     .entry-item .delete-btn:hover { opacity: 1; }
 
     .empty-entries {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      opacity: 0.6;
-      text-align: center;
-      padding: 16px 0;
+      color: var(--text-muted); font-size: 0.85rem; opacity: 0.6;
+      text-align: center; padding: 16px 0;
     }
 
     .flash {
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
+      padding: 10px 16px; border-radius: 6px; margin-bottom: 16px;
+      font-size: 0.85rem; border: 1px solid transparent;
     }
     .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
     .flash-error { background: rgba(247, 120, 122, 0.12); border-color: var(--red); color: var(--red); }
 
     .footer {
-      margin-top: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      opacity: 0.4;
-      letter-spacing: 0.04em;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
+      margin-top: 16px; text-align: center; color: var(--text-muted);
+      font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4;
+      letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px;
     }
 
     @media (max-width: 600px) {
@@ -349,8 +247,6 @@
       .card { padding: 16px 18px; }
       .status-grid { grid-template-columns: 1fr; }
       .login-card { padding: 32px 16px; }
-      .entry-item { flex-wrap: wrap; }
-      .entry-item .timestamp { width: 100%; }
     }
   </style>
 </head>
@@ -396,49 +292,30 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
-    // ─── API CALLS (with cache busting) ──────────────────
-    function getUrl(endpoint) {
-      const separator = endpoint.includes('?') ? '&' : '?';
-      return `${endpoint}${separator}_=${Date.now()}`;
-    }
-
+    // ─── API CALLS ──────────────────────────────────────────
     async function apiFetch(endpoint, options = {}) {
-      const url = getUrl(endpoint);
-      console.log(`[DEBUG] apiFetch: ${url}`);
-      const res = await fetch(url, {
+      const res = await fetch(endpoint, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
-        cache: 'no-store',
       });
-      console.log(`[DEBUG] apiFetch status: ${res.status}`);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || 'Request failed');
       }
-      const json = await res.json();
-      console.log(`[DEBUG] apiFetch response:`, json);
-      return json;
+      return res.json();
     }
 
     async function fetchUser() {
-      console.log('[DEBUG] fetchUser called');
       try {
         const data = await apiFetch('/api/me');
-        console.log('[DEBUG] fetchUser data:', data);
         currentUser = data.user;
-        console.log('[DEBUG] currentUser set to:', currentUser);
         renderHeader();
         if (currentUser) {
-          console.log('[DEBUG] User authenticated, fetching statuses and entries');
           await Promise.all([fetchStatuses(), fetchEntries()]);
-          renderContent();
-        } else {
-          console.log('[DEBUG] No user, showing login');
-          renderContent();
         }
-      } catch (err) {
-        console.error('[DEBUG] fetchUser error:', err);
+        renderContent();
+      } catch {
         currentUser = null;
         renderHeader();
         renderContent();
@@ -449,8 +326,10 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        updateStatusDisplay();
-      } catch (e) { console.error('fetchStatuses error:', e); }
+        // Update the status cards if they exist
+        if (currentUser) renderContent(); // quick full re-render to update statuses
+        else updateStatusDisplay(); // fallback
+      } catch {}
     }
 
     async function fetchEntries() {
@@ -458,7 +337,7 @@
         const data = await apiFetch('/api/entries');
         entries = data.entries || [];
         renderEntries();
-      } catch (e) { console.error('fetchEntries error:', e); }
+      } catch {}
     }
 
     async function setStatus(key, value, display) {
@@ -515,16 +394,12 @@
       if (btn) btn.textContent = 'Logging in...';
 
       try {
-        const url = getUrl('/auth/password');
-        console.log(`[DEBUG] POST /auth/password to ${url}`);
-        const res = await fetch(url, {
+        const res = await fetch('/auth/password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
           credentials: 'include',
-          cache: 'no-store',
         });
-        console.log(`[DEBUG] password login status: ${res.status}`);
 
         if (btn) btn.textContent = originalText;
 
@@ -540,11 +415,10 @@
         }
 
         const data = await res.json();
-        console.log('[DEBUG] password login response:', data);
         if (data.success) {
-          showFlash('Logged in successfully, redirecting...');
-          // Force a full page navigation to /admin to ensure cookie is sent
-          window.location.href = '/admin';
+          await fetchUser();
+          showFlash('Logged in successfully');
+          input.value = '';
         } else {
           throw new Error(data.error || 'Login failed');
         }
@@ -564,7 +438,6 @@
     }
 
     function renderContent() {
-      console.log('[DEBUG] renderContent called, currentUser:', currentUser);
       if (!currentUser) {
         mainContent.innerHTML = `
           <div class="card login-card">
@@ -623,9 +496,7 @@
               <button type="submit" class="btn btn-accent">Post Entry</button>
             </div>
           </form>
-          <div id="entryList" class="entry-list">
-            <!-- rendered by renderEntries() -->
-          </div>
+          <div id="entryList" class="entry-list"></div>
         </div>
       `;
 
@@ -637,7 +508,7 @@
       `;
 
       mainContent.innerHTML = statusHtml + entriesHtml + infoCard;
-      renderEntries();
+      renderEntries(); // populate the list after DOM update
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -728,19 +599,16 @@
     }
 
     // ─── INIT ────────────────────────────────────────────────
-    let statusInterval, entryInterval;
-
     async function init() {
-      console.log('[DEBUG] init called');
       await fetchUser();
-      console.log('[DEBUG] after fetchUser, currentUser:', currentUser);
       if (currentUser) {
-        console.log('[DEBUG] starting intervals');
-        statusInterval = setInterval(async () => {
+        // Poll for status updates every 15s
+        setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
           await fetchStatuses();
         }, 15000);
-        entryInterval = setInterval(async () => {
+        // Poll entries every 30s
+        setInterval(async () => {
           await fetchEntries();
         }, 30000);
       }
