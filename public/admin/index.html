@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* ── reset & tokens ── */
+    /* ── same as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -147,7 +147,6 @@
     }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-    /* ── status grid ── */
     .status-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -250,7 +249,6 @@
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    /* ── Entries ── */
     .entry-form textarea {
       width: 100%;
       background: var(--bg);
@@ -400,7 +398,6 @@
 
     // ─── API CALLS (with cache busting) ──────────────────
     function getUrl(endpoint) {
-      // Add a timestamp to force a fresh request
       const separator = endpoint.includes('?') ? '&' : '?';
       return `${endpoint}${separator}_=${Date.now()}`;
     }
@@ -532,9 +529,8 @@
 
         const data = await res.json();
         if (data.success) {
-          await fetchUser();
-          showFlash('Logged in successfully');
-          input.value = '';
+          // ✅ Reload the page to ensure the cookie is sent with the initial request
+          window.location.reload();
         } else {
           throw new Error(data.error || 'Login failed');
         }
