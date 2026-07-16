@@ -117,8 +117,10 @@ function verifyToken(token) {
 // ─── Auth Middleware ─────────────────────────────────────
 function authMiddleware(req, res, next) {
   const token = req.cookies?.auth_token;
+  console.log(`[Auth] Token present: ${!!token}`);
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   const user = verifyToken(token);
+  console.log(`[Auth] User verified: ${!!user}`);
   if (!user) return res.status(401).json({ error: 'Invalid token' });
   req.user = user;
   next();
@@ -183,6 +185,7 @@ app.post('/auth/password', (req, res) => {
       sameSite: 'lax',
       path: '/',
     });
+    console.log('[Auth] Cookie set');
     return res.json({ success: true });
   }
   
