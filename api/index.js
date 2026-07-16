@@ -19,7 +19,6 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,8 +30,6 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-
-  // Diary entries table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,9 +50,21 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging middleware ──────────────────────────────────
+// ─── Logging ─────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
+// ─── Cache‑control for API & auth routes ────────────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('ETag', '');
+    res.setHeader('Last-Modified', new Date().toUTCString());
+  }
   next();
 });
 
@@ -271,14 +280,13 @@ app.get('/api/public-entries', async (req, res) => {
   res.json({ entries: result.rows });
 });
 
-// ─── Logout ──────────────────────────────────────────────
 app.post('/api/logout', authMiddleware, (req, res) => {
   res.clearCookie('auth_token', { path: '/' });
   res.json({ success: true });
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES — Express handles everything
+//  STATIC FILES
 // ════════════════════════════════════════════════════════════════
 
 app.use(express.static(path.join(__dirname, '../public')));
