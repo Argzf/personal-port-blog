@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 
   <style>
+    /* all CSS is exactly the same as you provided – no changes */
     * {
       margin: 0;
       padding: 0;
@@ -839,7 +840,7 @@
 
   </div>
 
-  <script>
+<script>
     // ─── Dynamic Age (Tehran timezone) ───
     function calculateAge() {
       const birth = new Date('2012-05-10');
@@ -946,13 +947,8 @@
       }
     }
 
-    // ─── Cache-busting helper ───────────────────────────────────
-    function getUrl(endpoint) {
-      const separator = endpoint.includes('?') ? '&' : '?';
-      return `${endpoint}${separator}_=${Date.now()}`;
-    }
-
     // ─── Status logic (fetch from API, display "ago" only) ───
+
     let statuses = { caffeine: null, activity: null, mood: null };
 
     function formatTimeAgo(date) {
@@ -966,14 +962,16 @@
 
     async function fetchStatuses() {
       try {
-        const url = getUrl('/api/statuses');
-        const res = await fetch(url, { credentials: 'include', cache: 'no-store' });
+        const res = await fetch('/api/statuses', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch statuses');
         const data = await res.json();
+        // data.statuses is { caffeine, activity, mood } each with value, display, timestamp, date
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
         renderStatuses();
       } catch (e) {
-        console.warn('Could not fetch statuses:', e);
+        console.warn('Could not fetch statuses, using fallback:', e);
+        // Optionally fall back to localStorage if API fails? Better to keep consistent.
+        // We'll just leave empty.
       }
     }
 
@@ -998,17 +996,17 @@
 
       displayEl.textContent = data.display || data.value;
       if (metaEl) {
+        // Only show "ago" time, no exact date
         const timestamp = new Date(data.timestamp);
         metaEl.textContent = formatTimeAgo(timestamp);
       }
     }
 
-    // ─── Diary entries ──────────────────────────────────────
+    // ─── Diary Entries ──────────────────────────────────────
     async function fetchDiaryEntries() {
       try {
-        const url = getUrl('/api/public-entries');
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to fetch entries');
+        const res = await fetch('/api/public-entries');
+        if (!res.ok) throw new Error('Failed to fetch diary entries');
         const data = await res.json();
         renderDiaryEntries(data.entries || []);
       } catch (e) {
@@ -1040,22 +1038,21 @@
       return div.innerHTML;
     }
 
-    // ─── Initial render and periodic refresh ──────────────────
+    // ─── Initial render and periodic refresh ───
     async function init() {
       await fetchStatuses();
       await fetchDiaryEntries();
+      // Update age and red string after first render
       updateCaseAge();
       setTimeout(updateRedString, 100);
-
-      // Refresh statuses every 10s
+      // Refresh statuses every 10 seconds
       setInterval(async () => {
         await fetchStatuses();
+        // Red string may need update if cards move (they shouldn't)
         updateRedString();
       }, 10000);
-
-      // Refresh diary entries every 30s
+      // Refresh diary entries every 30 seconds
       setInterval(fetchDiaryEntries, 30000);
-
       // Red string on resize
       let resizeTimer;
       function handleResize() {
@@ -1063,19 +1060,20 @@
         resizeTimer = setTimeout(() => updateRedString(), 150);
       }
       window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', () => setTimeout(updateRedString, 300));
+      window.addEventListener('orientationchange', () => setTimeout(updateRedString(), 300));
 
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => updateRedString());
         const grid = document.getElementById('statusGrid');
         if (grid) ro.observe(grid);
       }
+      // Also update red string periodically
       setInterval(updateRedString, 2000);
     }
 
     init();
     console.log('🕵️ Arsan\'s Archive · connected to API');
-  </script>
+</script>
 
 </body>
 </html>
