@@ -8,24 +8,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
+    /* same as before – include full CSS */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #1A1410;
-      --surface: #28201B;
-      --surface-2: #3A322C;
-      --border: #4A3F38;
-      --text: #EDE4D6;
-      --text-muted: #A89888;
-      --accent: #D4875E;
-      --accent-dim: #B86A44;
-      --green: #7EE787;
-      --red: #F7787A;
-      --shadow: rgba(0,0,0,0.6);
-      --radius: 10px;
-      --font: 'Inter', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      --font-serif: 'DM Serif Display', serif;
-      --font-hand: 'Kalam', cursive;
+      --bg: #1A1410; --surface: #28201B; --surface-2: #3A322C; --border: #4A3F38;
+      --text: #EDE4D6; --text-muted: #A89888; --accent: #D4875E; --accent-dim: #B86A44;
+      --green: #7EE787; --red: #F7787A; --shadow: rgba(0,0,0,0.6); --radius: 10px;
+      --font: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'DM Serif Display', serif; --font-hand: 'Kalam', cursive;
     }
     html { font-size: 16px; }
     body {
@@ -417,8 +407,8 @@
     let blacklist = [];
     let silenced = [];
     let reviews = [];
-    // Section order (ids matching card IDs)
     let sectionOrder = ['status', 'custom-status', 'notes', 'diary', 'reviews', 'blacklist', 'silence', 'info'];
+
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
     const mainContent = document.getElementById('mainContent');
@@ -596,7 +586,7 @@
             <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <div style="display:flex; gap:8px; justify-content:flex-end;">
               <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
-              <button class="btn btn-accent" id="saveEntryBtn" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
+              <button class="btn btn-accent" onclick="window.saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
             </div>
           </div>
         </div>
@@ -606,6 +596,7 @@
       div.innerHTML = html;
       document.body.appendChild(div);
     }
+
     async function saveEntry(id) {
       const title = document.getElementById('entryTitle').value.trim();
       const content = document.getElementById('entryContent').value.trim();
@@ -625,6 +616,9 @@
         showFlash(e.message, 'error');
       }
     }
+    // Expose saveEntry globally so the modal's onclick can reach it
+    window.saveEntry = saveEntry;
+
     async function createEntry(data) {
       await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
       await fetchEntries();
@@ -724,11 +718,11 @@
       if (index === -1) return;
       const newIndex = index + direction;
       if (newIndex < 0 || newIndex >= sectionOrder.length) return;
-      // Swap
       [sectionOrder[index], sectionOrder[newIndex]] = [sectionOrder[newIndex], sectionOrder[index]];
       localStorage.setItem('sectionOrder', JSON.stringify(sectionOrder));
-      renderContent(); // re-render with new order
+      renderContent();
     }
+    window.moveSection = moveSection;
 
     // ─── Authentication ─────────────────────────────────────
     async function logout() {
@@ -813,7 +807,6 @@
         return;
       }
 
-      // ─── Restore order ────────────────────────────────────
       const stored = localStorage.getItem('sectionOrder');
       if (stored) {
         try {
@@ -824,7 +817,6 @@
         } catch {}
       }
 
-      // ─── Build each section as a card ──────────────────────
       const sections = {
         'status': buildStatusCard(),
         'custom-status': buildCustomStatusCard(),
@@ -836,30 +828,24 @@
         'info': buildInfoCard(),
       };
 
-      // Order them
       let html = '';
       for (const id of sectionOrder) {
         if (sections[id]) {
-          // Add reorder controls
           const idx = sectionOrder.indexOf(id);
           const controls = `
             <div class="reorder-controls">
-              <button onclick="moveSection('${id}', -1)" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>↑</button>
-              <button onclick="moveSection('${id}', 1)" ${idx === sectionOrder.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>↓</button>
+              <button onclick="window.moveSection('${id}', -1)" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>↑</button>
+              <button onclick="window.moveSection('${id}', 1)" ${idx === sectionOrder.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>↓</button>
             </div>
           `;
-          // Inject controls into the card
-          const cardHtml = sections[id];
-          // Find the first div with class 'card' and insert controls after h2?
-          // Simpler: wrap in a div with the reorder controls.
-          const wrapped = cardHtml.replace('<div class="card">', `<div class="card" id="card-${id}">${controls}`);
+          const wrapped = sections[id].replace('<div class="card">', `<div class="card" id="card-${id}">${controls}`);
           html += wrapped;
         }
       }
       mainContent.innerHTML = html;
     }
 
-    // ─── Section builders ────────────────────────────────────
+    // ─── Section builders (same as before) ──────────────────
     function buildStatusCard() {
       const drinks = getStatus('drinks');
       const activity = getStatus('activity');
