@@ -20,6 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
+  // Statuses (renamed caffeine → drinks)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +32,7 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
+  // Notes
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,6 +42,7 @@ async function initDatabase() {
       date TEXT
     )
   `);
+  // Blacklist
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +51,7 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
+  // Request logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,6 +61,29 @@ async function initDatabase() {
       method TEXT,
       timestamp INTEGER,
       is_admin INTEGER DEFAULT 0
+    )
+  `);
+  // Diary entries with new fields
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
+      content TEXT NOT NULL,
+      link TEXT,
+      image_url TEXT,
+      scheduled_at INTEGER,
+      published INTEGER DEFAULT 0,
+      timestamp INTEGER NOT NULL,
+      date TEXT
+    )
+  `);
+  // Silence logs table (mute IPs or pages)
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS silence_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      target TEXT NOT NULL,
+      type TEXT DEFAULT 'ip', -- 'ip' or 'path'
+      created_at INTEGER
     )
   `);
 }
@@ -71,7 +98,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging (only for requests) ────────────────────────
+// ─── Logging ─────────────────────────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
@@ -119,10 +146,20 @@ async function isIpBlacklisted(ip) {
 app.use(async (req, res, next) => {
   const ip = getClientIp(req);
   if (await isIpBlacklisted(ip)) {
-    return res.status(403).send('Your IP has been blocked.');
+    return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
   }
   next();
 });
+
+// ─── Silence log check ───────────────────────────────────
+async function shouldSilenceLog(ip, path) {
+  // Check if IP or path is muted
+  const result = await turso.execute({
+    sql: 'SELECT type FROM silence_logs WHERE target = ? OR target = ?',
+    args: [ip, path],
+  });
+  return result.rows.length > 0;
+}
 
 // ─── Session & Passport ──────────────────────────────────
 const sessionConfig = {
@@ -221,15 +258,18 @@ function formatIpLink(ip) {
 
 async function logAction(action, details = {}, req = null) {
   const ip = getClientIp(req);
+  const path = req?.path || '';
+  // Check if we should silence this log
+  if (await shouldSilenceLog(ip, path)) return;
+
   const userAgent = req?.get('user-agent') || 'unknown';
   const timestamp = Date.now();
 
-  // Store request log for counting
   if (req) {
     await turso.execute({
       sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, is_admin) 
             VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [ip, userAgent, req.path, req.method, timestamp, req.user ? 1 : 0],
+      args: [ip, userAgent, path, req.method, timestamp, req.user ? 1 : 0],
     });
   }
 
@@ -257,7 +297,6 @@ async function logAction(action, details = {}, req = null) {
 // ─── Middleware to log page visits ──────────────────────
 app.use(async (req, res, next) => {
   const path = req.path;
-  // Only log page views for homepage and admin
   if (path === '/' || path === '/admin' || path === '/admin/') {
     await logAction('Site Visit', { page: path }, req);
   }
@@ -343,7 +382,7 @@ app.get('/api/statuses', async (req, res) => {
       });
     }
   }
-  ['caffeine', 'activity', 'mood'].forEach(k => {
+  ['drinks', 'activity', 'mood'].forEach(k => {
     if (!statuses[k]) statuses[k] = null;
   });
   res.json({ statuses });
@@ -352,7 +391,7 @@ app.get('/api/statuses', async (req, res) => {
 // ─── Admin status operations ────────────────────────────
 app.post('/api/status', authMiddleware, async (req, res) => {
   const { key, value, display } = req.body;
-  if (!['caffeine', 'activity', 'mood'].includes(key)) {
+  if (!['drinks', 'activity', 'mood'].includes(key)) {
     return res.status(400).json({ error: 'Invalid status key' });
   }
   const timestamp = Date.now();
@@ -369,7 +408,7 @@ app.post('/api/status', authMiddleware, async (req, res) => {
 
 app.delete('/api/status', authMiddleware, async (req, res) => {
   const { key } = req.body;
-  if (!['caffeine', 'activity', 'mood'].includes(key)) {
+  if (!['drinks', 'activity', 'mood'].includes(key)) {
     return res.status(400).json({ error: 'Invalid status key' });
   }
   await turso.execute({
@@ -436,24 +475,52 @@ app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
 
 // ─── Diary entries ──────────────────────────────────────
 app.get('/api/entries', authMiddleware, async (req, res) => {
+  // Get published entries (scheduled_at <= now or published=1) and drafts
+  const now = Date.now();
   const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp, date FROM entries ORDER BY timestamp DESC LIMIT 50',
+    sql: `SELECT id, title, content, link, image_url, scheduled_at, published, timestamp 
+          FROM entries 
+          WHERE published = 1 OR (scheduled_at IS NULL OR scheduled_at <= ?)
+          ORDER BY timestamp DESC LIMIT 50`,
+    args: [now],
   });
   res.json({ entries: result.rows });
 });
 
 app.post('/api/entries', authMiddleware, async (req, res) => {
-  const { content } = req.body;
+  const { title, content, link, image_url, scheduled_at } = req.body;
   if (!content || content.trim().length === 0) {
     return res.status(400).json({ error: 'Content is required' });
   }
-  const timestamp = Date.now();
+  const now = Date.now();
   const date = getTehranDate();
+  const scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+  const published = (scheduled && scheduled > now) ? 0 : 1;
   await turso.execute({
-    sql: 'INSERT INTO entries (content, timestamp, date) VALUES (?, ?, ?)',
-    args: [content.trim(), timestamp, date],
+    sql: `INSERT INTO entries (title, content, link, image_url, scheduled_at, published, timestamp, date) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, now, date],
   });
-  await logAction('Diary Entry Added', { content: content.trim().slice(0, 50) }, req);
+  await logAction('Diary Entry Added', { title: title || 'Untitled', content: content.trim().slice(0, 50) }, req);
+  res.json({ success: true });
+});
+
+app.put('/api/entries/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { title, content, link, image_url, scheduled_at } = req.body;
+  if (!content || content.trim().length === 0) {
+    return res.status(400).json({ error: 'Content is required' });
+  }
+  const scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+  const now = Date.now();
+  const published = (scheduled && scheduled > now) ? 0 : 1;
+  await turso.execute({
+    sql: `UPDATE entries 
+          SET title = ?, content = ?, link = ?, image_url = ?, scheduled_at = ?, published = ? 
+          WHERE id = ?`,
+    args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, id],
+  });
+  await logAction('Diary Entry Edited', { id, title: title || 'Untitled' }, req);
   res.json({ success: true });
 });
 
@@ -468,10 +535,42 @@ app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/public-entries', async (req, res) => {
+  const now = Date.now();
   const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp FROM entries ORDER BY timestamp DESC LIMIT 10',
+    sql: `SELECT id, title, content, link, image_url, timestamp 
+          FROM entries 
+          WHERE published = 1 AND (scheduled_at IS NULL OR scheduled_at <= ?)
+          ORDER BY timestamp DESC LIMIT 10`,
+    args: [now],
   });
   res.json({ entries: result.rows });
+});
+
+// ─── Silence logs ──────────────────────────────────────
+app.get('/api/silence-logs', authMiddleware, async (req, res) => {
+  const result = await turso.execute('SELECT id, target, type, created_at FROM silence_logs');
+  res.json({ silenced: result.rows });
+});
+
+app.post('/api/silence-logs', authMiddleware, async (req, res) => {
+  const { target, type } = req.body;
+  if (!target) return res.status(400).json({ error: 'Target is required' });
+  await turso.execute({
+    sql: 'INSERT INTO silence_logs (target, type, created_at) VALUES (?, ?, ?)',
+    args: [target, type || 'ip', Date.now()],
+  });
+  await logAction('Log Silence Added', { target, type }, req);
+  res.json({ success: true });
+});
+
+app.delete('/api/silence-logs/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  await turso.execute({
+    sql: 'DELETE FROM silence_logs WHERE id = ?',
+    args: [id],
+  });
+  await logAction('Log Silence Removed', { id }, req);
+  res.json({ success: true });
 });
 
 // ─── Blacklist ──────────────────────────────────────────
@@ -518,9 +617,16 @@ app.get('/api/me', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
+//  ERROR PAGES
+// ════════════════════════════════════════════════════════════════
+// 404 handler – must come after all routes but before static fallback
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
+});
+
+// ════════════════════════════════════════════════════════════════
 //  STATIC FILES
 // ════════════════════════════════════════════════════════════════
-
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/admin', (req, res) => {
