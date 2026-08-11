@@ -27,6 +27,19 @@
       --font-mono: 'JetBrains Mono', monospace;
       --font-serif: 'DM Serif Display', serif;
       --font-hand: 'Kalam', cursive;
+      --sticky-yellow: #FCE9B6;
+      --sticky-border: #E8D09E;
+      --ink: #1E1814;
+      --ink-light: #4A3F38;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sticky-yellow: #3A3220;
+        --sticky-border: #4A3F30;
+        --ink: #EDE4D6;
+        --ink-light: #A89888;
+      }
     }
 
     html { font-size: 16px; }
@@ -159,7 +172,6 @@
     }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-    /* ── status grid ── */
     .status-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -203,7 +215,6 @@
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    /* ── Custom status section ── */
     .custom-status-grid {
       display: flex;
       flex-wrap: wrap;
@@ -240,74 +251,49 @@
     .custom-status-grid .field-group input:focus { border-color: var(--accent); }
     .custom-status-grid .field-group .btn { padding: 8px 16px; font-size: 0.85rem; width: 100%; }
 
-    /* ── Sticky notes ── */
-    .notes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    .sticky-note {
+    /* sticky note container for notes */
+    .sticky-note-container {
       background: var(--sticky-yellow);
       border: 1px solid var(--sticky-border);
       border-radius: 6px;
       padding: 14px 16px;
       box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
-      position: relative;
-      transform: rotate(var(--rot, 0deg));
-      transition: transform 0.15s;
+      transform: rotate(-0.5deg);
     }
-    .sticky-note:hover { transform: rotate(0deg) scale(1.02); z-index: 2; }
-    .sticky-note .content {
+    .sticky-note-container .note-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
       font-family: var(--font-hand);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: var(--ink);
-      word-break: break-word;
-      padding-bottom: 8px;
     }
-    .sticky-note .timestamp {
+    .sticky-note-container .note-entry:last-child { border-bottom: none; }
+    .sticky-note-container .note-entry .note-content { flex: 1; }
+    .sticky-note-container .note-entry .note-time {
       font-size: 0.6rem;
       color: var(--ink-light);
       font-family: var(--font-mono);
       opacity: 0.6;
-      margin-top: 4px;
+      margin: 0 8px;
+      white-space: nowrap;
     }
-    .sticky-note .note-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .sticky-note .note-actions button {
+    .sticky-note-container .note-entry .note-actions button {
       background: transparent;
       border: none;
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       cursor: pointer;
       opacity: 0.4;
       transition: opacity 0.2s;
-      font-family: var(--font);
       padding: 0 4px;
     }
-    .sticky-note .note-actions .edit-btn { color: var(--accent); }
-    .sticky-note .note-actions .delete-btn { color: var(--red); }
-    .sticky-note .note-actions button:hover { opacity: 1; }
+    .sticky-note-container .note-entry .note-actions .edit-btn { color: var(--accent); }
+    .sticky-note-container .note-entry .note-actions .delete-btn { color: var(--red); }
+    .sticky-note-container .note-entry .note-actions button:hover { opacity: 1; }
+    .empty-notes { color: var(--text-muted); font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 16px 0; }
 
-    :root {
-      --sticky-yellow: #FCE9B6;
-      --sticky-border: #E8D09E;
-      --ink: #1E1814;
-      --ink-light: #4A3F38;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --sticky-yellow: #3A3220;
-        --sticky-border: #4A3F30;
-        --ink: #EDE4D6;
-        --ink-light: #A89888;
-      }
-    }
-
-    /* ── Diary entries ── */
     .entry-form input, .entry-form textarea {
       width: 100%;
       background: var(--bg);
@@ -443,7 +429,6 @@
       .custom-status-grid { flex-direction: column; }
       .custom-status-grid .field-group { flex: 1 1 100%; }
       .custom-status-grid .field-group .btn { width: 100%; }
-      .notes-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -466,6 +451,7 @@
     let notes = [];
     let blacklist = [];
     let silenced = [];
+    let reviews = [];
 
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
@@ -492,7 +478,6 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
-    // ─── Cache‑busting helper ─────────────────────────────
     function getUrl(endpoint) {
       const sep = endpoint.includes('?') ? '&' : '?';
       return `${endpoint}${sep}_=${Date.now()}`;
@@ -514,13 +499,14 @@
       return res.json();
     }
 
+    // ─── Fetch functions ─────────────────────────────────────
     async function fetchUser() {
       try {
         const data = await apiFetch('/api/me');
         currentUser = data.user;
         renderHeader();
         if (currentUser) {
-          await Promise.all([fetchStatuses(), fetchEntries(), fetchNotes(), fetchBlacklist(), fetchSilenced()]);
+          await Promise.all([fetchStatuses(), fetchEntries(), fetchNotes(), fetchBlacklist(), fetchSilenced(), fetchReviews()]);
         }
         renderContent();
       } catch {
@@ -566,6 +552,14 @@
       try {
         const data = await apiFetch('/api/silence-logs');
         silenced = data.silenced || [];
+        if (currentUser) renderContent();
+      } catch {}
+    }
+
+    async function fetchReviews() {
+      try {
+        const data = await apiFetch('/api/reviews');
+        reviews = data.reviews || [];
         if (currentUser) renderContent();
       } catch {}
     }
@@ -663,7 +657,7 @@
       const isEdit = entry !== null;
       const data = entry || { title: '', content: '', link: '', image_url: '', scheduled_at: '' };
       const html = `
-        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
+        <div id="entryEditor" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto;">
             <h2 style="font-family:var(--font-serif); font-weight:400; margin-bottom:16px;">${isEdit ? 'Edit Entry' : 'New Entry'}</h2>
             <input type="text" id="entryTitle" placeholder="Title" value="${escapeHtml(data.title)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
@@ -672,16 +666,15 @@
             <input type="text" id="entryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-              <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
+              <button class="btn" onclick="document.getElementById('entryEditor').remove()">Cancel</button>
               <button class="btn btn-accent" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
             </div>
           </div>
         </div>
       `;
       const div = document.createElement('div');
-      div.id = 'entryEditor';
       div.innerHTML = html;
-      document.body.appendChild(div);
+      document.body.appendChild(div.firstElementChild);
     }
 
     async function saveEntry(id) {
@@ -697,10 +690,37 @@
       } else {
         await createEntry(data);
       }
-      document.getElementById('entryEditor').remove();
+      const editor = document.getElementById('entryEditor');
+      if (editor) editor.remove();
     }
 
-    // ─── Blacklist operations ──────────────────────────────
+    // ─── Reviews ────────────────────────────────────────────
+    async function addReview() {
+      const nameInput = document.getElementById('reviewName');
+      const msgInput = document.getElementById('reviewMessage');
+      if (!nameInput || !msgInput) return;
+      const name = nameInput.value.trim();
+      const message = msgInput.value.trim();
+      if (!name || !message) { showFlash('Name and message are required', 'error'); return; }
+      try {
+        await apiFetch('/api/reviews', { method: 'POST', body: JSON.stringify({ name, message }) });
+        await fetchReviews();
+        showFlash('Review added');
+        nameInput.value = '';
+        msgInput.value = '';
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function deleteReview(id) {
+      if (!confirm('Delete this review?')) return;
+      try {
+        await apiFetch(`/api/reviews/${id}`, { method: 'DELETE' });
+        await fetchReviews();
+        showFlash('Review deleted');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Blacklist ──────────────────────────────────────────
     async function addBlacklist() {
       const ipInput = document.getElementById('blacklistIp');
       const reasonInput = document.getElementById('blacklistReason');
@@ -911,17 +931,22 @@
         </div>
       `;
 
-      // ─── Notes as sticky notes ────────────────────────────
-      const notesHtml = notes.length ? notes.map((n, i) => `
-        <div class="sticky-note" style="--rot: ${(i % 3 - 1) * 2}deg;">
-          <div class="content">${escapeHtml(n.content)}</div>
-          <div class="timestamp">${formatTimeAgo(n.created_at)}</div>
-          <div class="note-actions">
-            <button class="edit-btn" onclick="editNote(${n.id}, '${escapeHtml(n.content)}')">✎</button>
-            <button class="delete-btn" onclick="deleteNote(${n.id})">✕</button>
+      // ─── Notes (sticky container) ─────────────────────────
+      let notesHtml = '';
+      if (notes.length === 0) {
+        notesHtml = `<div class="empty-notes">No notes yet.</div>`;
+      } else {
+        notesHtml = notes.map(n => `
+          <div class="note-entry">
+            <span class="note-content">${escapeHtml(n.content)}</span>
+            <span class="note-time">${formatTimeAgo(n.created_at)}</span>
+            <span class="note-actions">
+              <button class="edit-btn" onclick="editNote(${n.id}, '${escapeHtml(n.content)}')">✎</button>
+              <button class="delete-btn" onclick="deleteNote(${n.id})">✕</button>
+            </span>
           </div>
-        </div>
-      `).join('') : `<div class="empty-notes">No notes yet.</div>`;
+        `).join('');
+      }
 
       const notesSection = `
         <div class="card">
@@ -930,7 +955,7 @@
             <input type="text" id="noteInput" placeholder="Write a note..." />
             <button class="btn btn-accent" onclick="addNote()">Add</button>
           </div>
-          <div class="notes-grid">${notesHtml}</div>
+          <div class="sticky-note-container">${notesHtml}</div>
         </div>
       `;
 
@@ -965,19 +990,45 @@
         </div>
       `;
 
+      // ─── Reviews ───────────────────────────────────────────
+      const reviewsList = reviews.length ? reviews.map(r => `
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <strong>${escapeHtml(r.name)}</strong>
+            <span style="color:var(--text-muted); font-size:0.9rem;">${escapeHtml(r.message)}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.65rem; color:var(--text-muted);">${formatTimeAgo(r.timestamp)}</span>
+            <button class="delete-btn" onclick="deleteReview(${r.id})" style="background:transparent; border:none; color:var(--red); cursor:pointer;">✕</button>
+          </div>
+        </div>
+      `).join('') : `<div class="empty-entries">No reviews yet.</div>`;
+
+      const reviewsSection = `
+        <div class="card">
+          <h2>⭐ Reviews / Compliments / Messages</h2>
+          <div class="flex-row">
+            <input type="text" id="reviewName" placeholder="Name" />
+            <input type="text" id="reviewMessage" placeholder="Message" />
+            <button class="btn btn-accent" onclick="addReview()">Add Review</button>
+          </div>
+          <div style="margin-top:12px;">${reviewsList}</div>
+        </div>
+      `;
+
       // ─── Blacklist ────────────────────────────────────────
       const blacklistItems = blacklist.length ? blacklist.map(b => `
-        <div class="blacklist-item" style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
           <div>
             <a href="https://whatismyipaddress.com/ip/${b.ip}" target="_blank" class="ip-link">${b.ip}</a>
             ${b.reason ? ' — ' + escapeHtml(b.reason) : ''}
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:0.65rem; color:var(--text-muted);">${formatTimeAgo(b.created_at)}</span>
-            <button class="delete-btn" onclick="removeBlacklist('${b.ip}')" style="background:transparent; border:none; color:var(--red); cursor:pointer;">✕</button>
+            <button onclick="removeBlacklist('${b.ip}')" style="background:transparent; border:none; color:var(--red); cursor:pointer;">✕</button>
           </div>
         </div>
-      `).join('') : `<div class="empty-blacklist">No blacklisted IPs.</div>`;
+      `).join('') : `<div class="empty-entries">No blacklisted IPs.</div>`;
 
       const blacklistSection = `
         <div class="card">
@@ -1025,7 +1076,7 @@
         </div>
       `;
 
-      mainContent.innerHTML = statusCards + customSection + notesSection + diarySection + blacklistSection + silenceSection + infoCard;
+      mainContent.innerHTML = statusCards + customSection + notesSection + diarySection + reviewsSection + blacklistSection + silenceSection + infoCard;
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -1062,7 +1113,7 @@
       if (currentUser) {
         setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-          await Promise.all([fetchStatuses(), fetchNotes(), fetchEntries(), fetchBlacklist(), fetchSilenced()]);
+          await Promise.all([fetchStatuses(), fetchNotes(), fetchEntries(), fetchBlacklist(), fetchSilenced(), fetchReviews()]);
         }, 20000);
       }
     }
