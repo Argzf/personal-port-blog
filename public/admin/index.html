@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    /* same as before – include full CSS */
+    /* ── same as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg: #1A1410; --surface: #28201B; --surface-2: #3A322C; --border: #4A3F38;
@@ -586,7 +586,7 @@
             <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <div style="display:flex; gap:8px; justify-content:flex-end;">
               <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
-              <button class="btn btn-accent" onclick="window.saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
+              <button class="btn btn-accent" id="saveEntryBtn" onclick="window.saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
             </div>
           </div>
         </div>
@@ -597,13 +597,19 @@
       document.body.appendChild(div);
     }
 
+    // The actual save function
     async function saveEntry(id) {
+      console.log('[saveEntry] called with id:', id);
       const title = document.getElementById('entryTitle').value.trim();
       const content = document.getElementById('entryContent').value.trim();
       const link = document.getElementById('entryLink').value.trim();
       const image_url = document.getElementById('entryImage').value.trim();
       const scheduled_at = document.getElementById('entryScheduled').value;
-      if (!content) { showFlash('Content is required', 'error'); return; }
+      console.log('[saveEntry] data:', { title, content, link, image_url, scheduled_at });
+      if (!content) {
+        showFlash('Content is required', 'error');
+        return;
+      }
       const data = { title, content, link, image_url, scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null };
       try {
         if (id) {
@@ -613,10 +619,11 @@
         }
         document.getElementById('entryEditor').remove();
       } catch (e) {
+        console.error('[saveEntry] error:', e);
         showFlash(e.message, 'error');
       }
     }
-    // Expose saveEntry globally so the modal's onclick can reach it
+    // Expose globally
     window.saveEntry = saveEntry;
 
     async function createEntry(data) {
