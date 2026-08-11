@@ -10,16 +10,32 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #1A1410; --surface: #28201B; --surface-2: #3A322C; --border: #4A3F38;
-      --text: #EDE4D6; --text-muted: #A89888; --accent: #D4875E; --accent-dim: #B86A44;
-      --green: #7EE787; --red: #F7787A; --shadow: rgba(0,0,0,0.6); --radius: 10px;
-      --font: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', monospace;
-      --font-serif: 'DM Serif Display', serif; --font-hand: 'Kalam', cursive;
+      --bg: #1A1410;
+      --surface: #28201B;
+      --surface-2: #3A322C;
+      --border: #4A3F38;
+      --text: #EDE4D6;
+      --text-muted: #A89888;
+      --accent: #D4875E;
+      --accent-dim: #B86A44;
+      --green: #7EE787;
+      --red: #F7787A;
+      --shadow: rgba(0,0,0,0.6);
+      --radius: 10px;
+      --font: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'DM Serif Display', serif;
+      --font-hand: 'Kalam', cursive;
     }
     html { font-size: 16px; }
     body {
-      font-family: var(--font); background: var(--bg); color: var(--text);
-      line-height: 1.6; min-height: 100vh; display: flex; justify-content: center;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
       padding: 24px 16px;
       background-image: radial-gradient(circle at 20% 50%, rgba(90,60,40,0.15) 0%, transparent 60%);
     }
@@ -33,10 +49,21 @@
     .header .user-area { display: flex; align-items: center; gap: 14px; }
 
     .btn {
-      background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px;
-      padding: 6px 18px; font-size: 0.75rem; font-weight: 500; color: var(--text);
-      cursor: pointer; transition: all 0.2s ease; font-family: var(--font); text-decoration: none;
-      display: inline-block; text-align: center; line-height: 1.4; white-space: nowrap;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font);
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      line-height: 1.4;
+      white-space: nowrap;
     }
     .btn:hover { background: var(--border); border-color: var(--accent-dim); }
     .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -49,90 +76,311 @@
     .btn-sm { font-size: 0.6rem; padding: 2px 12px; line-height: 1.6; background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px; color: var(--text); cursor: pointer; transition: 0.15s; font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; }
     .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
 
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 8px 24px var(--shadow); }
-    .card h2 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .card h2 .badge-count { font-family: var(--font-mono); font-size: 0.65rem; background: var(--surface-2); padding: 0 10px; border-radius: 20px; color: var(--text-muted); font-weight: 400; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px var(--shadow);
+      position: relative;
+    }
+    .card h2 {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .badge-count {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      background: var(--surface-2);
+      padding: 0 10px;
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .card .reorder-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 4px;
+    }
+    .card .reorder-controls button {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      padding: 0 6px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font-mono);
+    }
+    .card .reorder-controls button:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
 
     .login-card { text-align: center; padding: 48px 28px; }
     .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
     .login-card h2 { font-size: 1.4rem; margin-bottom: 4px; justify-content: center; }
     .login-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
     .login-form { max-width: 340px; margin: 0 auto; }
-    .login-form input[type="password"] { width: 100%; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px; font-family: var(--font); outline: none; }
+    .login-form input[type="password"] {
+      width: 100%; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px;
+      font-family: var(--font); outline: none;
+    }
     .login-form input[type="password"]:focus { border-color: var(--accent); }
-    .login-divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono); }
+    .login-divider {
+      display: flex; align-items: center; gap: 16px; margin: 20px 0;
+      color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono);
+    }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-    .status-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; transition: border-color 0.2s; }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .status-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      transition: border-color 0.2s;
+    }
     .status-item:hover { border-color: var(--accent-dim); }
-    .status-item .label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; font-family: var(--font-mono); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-    .status-item .current { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem; }
+    .status-item .label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .status-item .current {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+      min-height: 1.8rem;
+    }
     .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
-    .status-item .meta { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem; }
-    .status-item .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-    .status-item .actions button { background: transparent; border: 1px solid var(--border); border-radius: 30px; padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8; }
-    .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
-    .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-    .status-item .clear-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s; font-family: var(--font); padding: 2px 4px; margin-left: 4px; }
+    .status-item .meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      margin-bottom: 10px;
+      min-height: 1.2rem;
+    }
+    .status-item .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-item .actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 2px 12px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font);
+      line-height: 1.8;
+    }
+    .status-item .actions button:hover {
+      background: var(--surface-2);
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+    .status-item .actions button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+    .status-item .clear-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.55rem;
+      cursor: pointer;
+      opacity: 0.3;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 2px 4px;
+      margin-left: 4px;
+    }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
     .custom-status-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
     .custom-status-grid .field-group { display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; }
-    .custom-status-grid .field-group label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; font-family: var(--font-mono); }
-    .custom-status-grid .field-group select, .custom-status-grid .field-group input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; font-family: var(--font); outline: none; width: 100%; }
+    .custom-status-grid .field-group label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+    .custom-status-grid .field-group select, .custom-status-grid .field-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font);
+      outline: none;
+      width: 100%;
+    }
     .custom-status-grid .field-group select:focus, .custom-status-grid .field-group input:focus { border-color: var(--accent); }
     .custom-status-grid .field-group .btn { padding: 8px 16px; font-size: 0.85rem; width: 100%; }
 
     .sticky-note-container {
-      background: #FCE9B6; border: 1px solid #E8D09E; border-radius: 6px; padding: 14px 16px;
-      box-shadow: 4px 4px 12px rgba(0,0,0,0.2); transform: rotate(-0.5deg);
+      background: #FCE9B6;
+      border: 1px solid #E8D09E;
+      border-radius: 6px;
+      padding: 14px 16px;
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+      transform: rotate(-0.5deg);
       margin: 8px 0;
     }
     @media (prefers-color-scheme: dark) {
       .sticky-note-container { background: #3A3220; border-color: #4A3F30; }
     }
     .sticky-note-container .note-entry {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
-      font-family: var(--font-hand); font-size: 0.9rem; color: #1E1814;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-family: var(--font-hand);
+      font-size: 0.9rem;
+      color: #1E1814;
     }
     .sticky-note-container .note-entry:last-child { border-bottom: none; }
     .sticky-note-container .note-entry .note-content { flex: 1; }
-    .sticky-note-container .note-entry .note-time { font-size: 0.6rem; color: #4A3F38; font-family: var(--font-mono); opacity: 0.6; margin: 0 8px; white-space: nowrap; }
-    .sticky-note-container .note-entry .note-actions button { background: transparent; border: none; font-size: 0.6rem; cursor: pointer; opacity: 0.4; transition: opacity 0.2s; padding: 0 4px; }
+    .sticky-note-container .note-entry .note-time {
+      font-size: 0.6rem;
+      color: #4A3F38;
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      margin: 0 8px;
+      white-space: nowrap;
+    }
+    .sticky-note-container .note-entry .note-actions button {
+      background: transparent;
+      border: none;
+      font-size: 0.6rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      padding: 0 4px;
+    }
     .sticky-note-container .note-entry .note-actions .edit-btn { color: var(--accent); }
     .sticky-note-container .note-entry .note-actions .delete-btn { color: var(--red); }
     .sticky-note-container .note-entry .note-actions button:hover { opacity: 1; }
 
-    .entry-form input, .entry-form textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9rem; font-family: var(--font); outline: none; margin-bottom: 8px; }
+    .entry-form input, .entry-form textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: var(--font);
+      outline: none;
+      margin-bottom: 8px;
+    }
     .entry-form input:focus, .entry-form textarea:focus { border-color: var(--accent); }
     .entry-form textarea { resize: vertical; min-height: 80px; }
-    .entry-form .submit-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+    .entry-form .submit-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
 
     .entry-list { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .entry-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .entry-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
     .entry-item .entry-header { display: flex; justify-content: space-between; align-items: flex-start; }
     .entry-item .entry-title { font-weight: 600; font-size: 1rem; }
     .entry-item .entry-content { font-size: 0.9rem; }
-    .entry-item .entry-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .entry-item .entry-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
     .entry-item .entry-meta a { color: var(--accent); text-decoration: none; }
     .entry-item .entry-meta a:hover { text-decoration: underline; }
     .entry-item .entry-image { max-width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; margin-top: 4px; }
     .entry-item .entry-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 
     .flex-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .flex-row input { flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9rem; outline: none; }
+    .flex-row input {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
     .flex-row input:focus { border-color: var(--accent); }
 
     .ip-link { color: var(--accent); text-decoration: none; }
     .ip-link:hover { text-decoration: underline; }
 
-    .flash { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.85rem; border: 1px solid transparent; }
+    .flash {
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+    }
     .flash-success { background: rgba(126,231,135,0.12); border-color: var(--green); color: var(--green); }
     .flash-error { background: rgba(247,120,122,0.12); border-color: var(--red); color: var(--red); }
 
-    .footer { margin-top: 16px; text-align: center; color: var(--text-muted); font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4; letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px; }
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      opacity: 0.4;
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
 
     @media (max-width: 600px) {
       .header { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -145,6 +393,7 @@
       .custom-status-grid { flex-direction: column; }
       .custom-status-grid .field-group { flex: 1 1 100%; }
       .custom-status-grid .field-group .btn { width: 100%; }
+      .card .reorder-controls { position: static; justify-content: flex-end; margin-top: 8px; }
     }
   </style>
 </head>
@@ -168,7 +417,8 @@
     let blacklist = [];
     let silenced = [];
     let reviews = [];
-
+    // Section order (ids matching card IDs)
+    let sectionOrder = ['status', 'custom-status', 'notes', 'diary', 'reviews', 'blacklist', 'silence', 'info'];
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
     const mainContent = document.getElementById('mainContent');
@@ -336,7 +586,7 @@
       const isEdit = entry !== null;
       const data = entry || { title: '', content: '', link: '', image_url: '', scheduled_at: '' };
       const html = `
-        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto;">
             <h2 style="font-family:var(--font-serif); font-weight:400; margin-bottom:16px;">${isEdit ? 'Edit Entry' : 'New Entry'}</h2>
             <input type="text" id="entryTitle" placeholder="Title" value="${escapeHtml(data.title)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
@@ -346,7 +596,7 @@
             <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <div style="display:flex; gap:8px; justify-content:flex-end;">
               <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
-              <button class="btn btn-accent" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
+              <button class="btn btn-accent" id="saveEntryBtn" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
             </div>
           </div>
         </div>
@@ -364,26 +614,26 @@
       const scheduled_at = document.getElementById('entryScheduled').value;
       if (!content) { showFlash('Content is required', 'error'); return; }
       const data = { title, content, link, image_url, scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null };
-      if (id) {
-        await updateEntry(id, data);
-      } else {
-        await createEntry(data);
+      try {
+        if (id) {
+          await updateEntry(id, data);
+        } else {
+          await createEntry(data);
+        }
+        document.getElementById('entryEditor').remove();
+      } catch (e) {
+        showFlash(e.message, 'error');
       }
-      document.getElementById('entryEditor').remove();
     }
     async function createEntry(data) {
-      try {
-        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
-        await fetchEntries();
-        showFlash('Entry added');
-      } catch (e) { showFlash(e.message, 'error'); }
+      await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
+      await fetchEntries();
+      showFlash('Entry added');
     }
     async function updateEntry(id, data) {
-      try {
-        await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-        await fetchEntries();
-        showFlash('Entry updated');
-      } catch (e) { showFlash(e.message, 'error'); }
+      await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      await fetchEntries();
+      showFlash('Entry updated');
     }
     async function deleteEntry(id) {
       if (!confirm('Delete this entry?')) return;
@@ -466,6 +716,18 @@
         await fetchReviews();
         showFlash('Review deleted');
       } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Section reordering ──────────────────────────────────
+    function moveSection(id, direction) {
+      const index = sectionOrder.indexOf(id);
+      if (index === -1) return;
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= sectionOrder.length) return;
+      // Swap
+      [sectionOrder[index], sectionOrder[newIndex]] = [sectionOrder[newIndex], sectionOrder[index]];
+      localStorage.setItem('sectionOrder', JSON.stringify(sectionOrder));
+      renderContent(); // re-render with new order
     }
 
     // ─── Authentication ─────────────────────────────────────
@@ -551,12 +813,58 @@
         return;
       }
 
-      // ─── Statuses ──────────────────────────────────────────
+      // ─── Restore order ────────────────────────────────────
+      const stored = localStorage.getItem('sectionOrder');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length === sectionOrder.length) {
+            sectionOrder = parsed;
+          }
+        } catch {}
+      }
+
+      // ─── Build each section as a card ──────────────────────
+      const sections = {
+        'status': buildStatusCard(),
+        'custom-status': buildCustomStatusCard(),
+        'notes': buildNotesCard(),
+        'diary': buildDiaryCard(),
+        'reviews': buildReviewsCard(),
+        'blacklist': buildBlacklistCard(),
+        'silence': buildSilenceCard(),
+        'info': buildInfoCard(),
+      };
+
+      // Order them
+      let html = '';
+      for (const id of sectionOrder) {
+        if (sections[id]) {
+          // Add reorder controls
+          const idx = sectionOrder.indexOf(id);
+          const controls = `
+            <div class="reorder-controls">
+              <button onclick="moveSection('${id}', -1)" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>↑</button>
+              <button onclick="moveSection('${id}', 1)" ${idx === sectionOrder.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>↓</button>
+            </div>
+          `;
+          // Inject controls into the card
+          const cardHtml = sections[id];
+          // Find the first div with class 'card' and insert controls after h2?
+          // Simpler: wrap in a div with the reorder controls.
+          const wrapped = cardHtml.replace('<div class="card">', `<div class="card" id="card-${id}">${controls}`);
+          html += wrapped;
+        }
+      }
+      mainContent.innerHTML = html;
+    }
+
+    // ─── Section builders ────────────────────────────────────
+    function buildStatusCard() {
       const drinks = getStatus('drinks');
       const activity = getStatus('activity');
       const mood = getStatus('mood');
-
-      const statusCards = `
+      return `
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
@@ -599,9 +907,30 @@
           </div>
         </div>
       `;
+    }
 
-      // ─── Custom Status ────────────────────────────────────
-      const customSection = `
+    function renderStatusItem(key, icon, data, options) {
+      const display = data ? data.display || data.value : null;
+      const meta = data ? `${formatTimeAgo(data.timestamp)}` : 'not logged';
+      const optionsHtml = options.map(opt => {
+        const active = display === opt.label || (data && data.value === opt.value);
+        return `<button class="${active ? 'active' : ''}" onclick="setStatus('${key}','${opt.value}','${opt.label}')">${opt.label}</button>`;
+      }).join('');
+      return `
+        <div class="status-item">
+          <div class="label">${icon} ${key}</div>
+          <div class="current">${display ? display : '<span class="empty">—</span>'}</div>
+          <div class="meta">${meta}</div>
+          <div class="actions">
+            ${optionsHtml}
+            <button class="clear-btn" onclick="clearStatus('${key}')">✕ clear</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildCustomStatusCard() {
+      return `
         <div class="card">
           <h2>✏️ Custom Status</h2>
           <div class="custom-status-grid">
@@ -624,8 +953,9 @@
           </div>
         </div>
       `;
+    }
 
-      // ─── Notes as sticky notes container ──────────────────
+    function buildNotesCard() {
       const notesHtml = notes.length ? notes.map(n => `
         <div class="note-entry">
           <span class="note-content">${escapeHtml(n.content)}</span>
@@ -637,7 +967,7 @@
         </div>
       `).join('') : `<div class="empty-notes">No notes yet.</div>`;
 
-      const notesSection = `
+      return `
         <div class="card">
           <h2>📝 Notes</h2>
           <div class="flex-row">
@@ -647,8 +977,9 @@
           <div class="sticky-note-container">${notesHtml}</div>
         </div>
       `;
+    }
 
-      // ─── Diary Entries ────────────────────────────────────
+    function buildDiaryCard() {
       const diaryList = entries.length ? entries.map(e => `
         <div class="entry-item">
           <div class="entry-header">
@@ -671,15 +1002,16 @@
         </div>
       `).join('') : `<div class="empty-entries">No diary entries.</div>`;
 
-      const diarySection = `
+      return `
         <div class="card">
           <h2>📖 Diary Entries</h2>
           <button class="btn btn-accent" onclick="openEntryEditor()" style="margin-bottom:12px;">+ New Entry</button>
           <div class="entry-list">${diaryList}</div>
         </div>
       `;
+    }
 
-      // ─── Reviews ──────────────────────────────────────────
+    function buildReviewsCard() {
       const reviewsList = reviews.length ? reviews.map(r => `
         <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
           <div>
@@ -693,7 +1025,7 @@
         </div>
       `).join('') : `<div class="empty-entries">No reviews yet.</div>`;
 
-      const reviewsSection = `
+      return `
         <div class="card">
           <h2>⭐ Reviews / Messages</h2>
           <div class="flex-row">
@@ -704,8 +1036,9 @@
           ${reviewsList}
         </div>
       `;
+    }
 
-      // ─── Blacklist ────────────────────────────────────────
+    function buildBlacklistCard() {
       const blacklistItems = blacklist.length ? blacklist.map(b => `
         <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
           <div>
@@ -719,7 +1052,7 @@
         </div>
       `).join('') : `<div class="empty-entries">No blacklisted IPs.</div>`;
 
-      const blacklistSection = `
+      return `
         <div class="card">
           <h2>🚫 Blacklist</h2>
           <div class="flex-row">
@@ -730,8 +1063,9 @@
           ${blacklistItems}
         </div>
       `;
+    }
 
-      // ─── Silence logs ──────────────────────────────────────
+    function buildSilenceCard() {
       const silencedItems = silenced.length ? silenced.map(s => `
         <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
           <span>${s.type === 'ip' ? '🌐' : '📄'} ${escapeHtml(s.target)}</span>
@@ -742,7 +1076,7 @@
         </div>
       `).join('') : `<div class="empty-entries">No silence rules.</div>`;
 
-      const silenceSection = `
+      return `
         <div class="card">
           <h2>🔇 Silence Logs</h2>
           <div class="flex-row">
@@ -756,34 +1090,13 @@
           ${silencedItems}
         </div>
       `;
+    }
 
-      // ─── Info card ────────────────────────────────────────
-      const infoCard = `
+    function buildInfoCard() {
+      return `
         <div class="card" style="border-color:var(--border); opacity:0.7;">
           <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses &amp; Notes reset 24h after creation.</p>
           <p style="font-size:0.7rem; color:var(--text-muted); opacity:0.5;">All admin actions are logged and sent to Telegram.</p>
-        </div>
-      `;
-
-      mainContent.innerHTML = statusCards + customSection + notesSection + diarySection + reviewsSection + blacklistSection + silenceSection + infoCard;
-    }
-
-    function renderStatusItem(key, icon, data, options) {
-      const display = data ? data.display || data.value : null;
-      const meta = data ? `${formatTimeAgo(data.timestamp)}` : 'not logged';
-      const optionsHtml = options.map(opt => {
-        const active = display === opt.label || (data && data.value === opt.value);
-        return `<button class="${active ? 'active' : ''}" onclick="setStatus('${key}','${opt.value}','${opt.label}')">${opt.label}</button>`;
-      }).join('');
-      return `
-        <div class="status-item">
-          <div class="label">${icon} ${key}</div>
-          <div class="current">${display ? display : '<span class="empty">—</span>'}</div>
-          <div class="meta">${meta}</div>
-          <div class="actions">
-            ${optionsHtml}
-            <button class="clear-btn" onclick="clearStatus('${key}')">✕ clear</button>
-          </div>
         </div>
       `;
     }
