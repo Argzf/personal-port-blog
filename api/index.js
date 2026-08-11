@@ -93,6 +93,27 @@ async function initDatabase() {
 }
 initDatabase();
 
+// ─── Rate limiting ──────────────────────────────────────
+// Global limiter for all API routes (100 requests per minute)
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please slow down.' },
+  keyGenerator: (req) => getClientIp(req),
+  skip: (req) => req.path === '/api/public-entries' || req.path === '/api/public-reviews' || req.path === '/api/statuses' || req.path === '/api/public-notes', // public endpoints can have higher limits
+});
+
+app.use('/api/', globalLimiter);
+
+// ─── Login limiter ──────────────────────────────────────
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 3,
+  message: { error: 'Too many login attempts. Please try again later.' },
+  keyGenerator: (req) => getClientIp(req),
+  skipSuccessfulRequests: true,
+});
+
 // ─── Middleware ──────────────────────────────────────────
 app.use(cors({ 
   origin: process.env.VERCEL_URL || 'http://localhost:3000', 
@@ -135,15 +156,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── Rate limiting ──────────────────────────────────────
-const loginLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 3,
-  message: { error: 'Too many login attempts. Please try again later.' },
-  keyGenerator: (req) => req.ip,
-  skipSuccessfulRequests: true,
-});
-
 function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
   const realIp = req.headers['x-real-ip'];
@@ -169,7 +181,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ─── Silence log check (with wildcard support) ──────────
+// ─── Silence log check ──────────────────────────────────
 async function shouldSilenceLog(ip, path) {
   const result = await turso.execute({
     sql: 'SELECT target FROM silence_logs WHERE target = ? OR target = ? OR target = ?',
@@ -292,11 +304,6 @@ async function logAction(action, details = {}, req = null, statusCode = 200) {
   msg += `📊 Requests (24h): ${count}`;
   await sendTelegramMessage(msg);
 }
-
-// ─── Middleware to log page visits ──────────────────────
-app.use(async (req, res, next) => {
-  next();
-});
 
 // ════════════════════════════════════════════════════════════════
 //  ROUTES
