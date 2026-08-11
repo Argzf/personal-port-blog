@@ -6,7 +6,7 @@
   <title>Arsan · Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -26,6 +26,7 @@
       --font: 'Inter', system-ui, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --font-serif: 'DM Serif Display', serif;
+      --font-hand: 'Kalam', cursive;
     }
 
     html { font-size: 16px; }
@@ -42,7 +43,7 @@
       background-image: radial-gradient(circle at 20% 50%, rgba(90, 60, 40, 0.15) 0%, transparent 60%);
     }
 
-    .container { max-width: 820px; width: 100%; }
+    .container { max-width: 860px; width: 100%; }
 
     .header {
       display: flex;
@@ -158,7 +159,12 @@
     }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    /* ── status grid ── */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
     .status-item {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -190,15 +196,6 @@
     }
     .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
     .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-    .status-item .actions .custom-input {
-      display: flex; gap: 4px; align-items: center;
-    }
-    .status-item .actions .custom-input input {
-      background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px;
-      padding: 1px 10px; font-size: 0.6rem; color: var(--text); font-family: var(--font);
-      width: 80px; outline: none; height: 22px;
-    }
-    .status-item .actions .custom-input input:focus { border-color: var(--accent); }
     .status-item .clear-btn {
       background: transparent; border: none; color: var(--text-muted);
       font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
@@ -206,7 +203,7 @@
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    /* ── new custom status section ── */
+    /* ── Custom status section ── */
     .custom-status-grid {
       display: flex;
       flex-wrap: wrap;
@@ -240,100 +237,152 @@
       width: 100%;
     }
     .custom-status-grid .field-group select:focus,
-    .custom-status-grid .field-group input:focus {
-      border-color: var(--accent);
+    .custom-status-grid .field-group input:focus { border-color: var(--accent); }
+    .custom-status-grid .field-group .btn { padding: 8px 16px; font-size: 0.85rem; width: 100%; }
+
+    /* ── Sticky notes ── */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
     }
-    .custom-status-grid .field-group .btn {
-      padding: 8px 16px;
-      font-size: 0.85rem;
-      width: 100%;
+    .sticky-note {
+      background: var(--sticky-yellow);
+      border: 1px solid var(--sticky-border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+      transform: rotate(var(--rot, 0deg));
+      transition: transform 0.15s;
+    }
+    .sticky-note:hover { transform: rotate(0deg) scale(1.02); z-index: 2; }
+    .sticky-note .content {
+      font-family: var(--font-hand);
+      font-size: 0.95rem;
+      color: var(--ink);
+      word-break: break-word;
+      padding-bottom: 8px;
+    }
+    .sticky-note .timestamp {
+      font-size: 0.6rem;
+      color: var(--ink-light);
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+    .sticky-note .note-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .sticky-note .note-actions button {
+      background: transparent;
+      border: none;
+      font-size: 0.7rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 0 4px;
+    }
+    .sticky-note .note-actions .edit-btn { color: var(--accent); }
+    .sticky-note .note-actions .delete-btn { color: var(--red); }
+    .sticky-note .note-actions button:hover { opacity: 1; }
+
+    :root {
+      --sticky-yellow: #FCE9B6;
+      --sticky-border: #E8D09E;
+      --ink: #1E1814;
+      --ink-light: #4A3F38;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sticky-yellow: #3A3220;
+        --sticky-border: #4A3F30;
+        --ink: #EDE4D6;
+        --ink-light: #A89888;
+      }
     }
 
-    /* ── notes, diary, blacklist ── */
-    .entry-form textarea {
+    /* ── Diary entries ── */
+    .entry-form input, .entry-form textarea {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 10px 14px;
+      padding: 8px 12px;
       color: var(--text);
       font-size: 0.9rem;
       font-family: var(--font);
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .entry-form input:focus, .entry-form textarea:focus { border-color: var(--accent); }
+    .entry-form textarea {
       resize: vertical;
       min-height: 80px;
-      outline: none;
     }
-    .entry-form textarea:focus { border-color: var(--accent); }
     .entry-form .submit-row {
       display: flex;
       justify-content: flex-end;
+      gap: 8px;
       margin-top: 8px;
     }
 
-    .entry-list, .notes-list, .blacklist-list {
+    .entry-list {
       margin-top: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
-
-    .entry-item, .note-item, .blacklist-item {
+    .entry-item {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 12px 16px;
       display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .entry-item .entry-header {
+      display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
     }
-    .entry-item .content, .note-item .content, .blacklist-item .content {
-      flex: 1;
+    .entry-item .entry-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .entry-item .entry-content {
       font-size: 0.9rem;
-      word-break: break-word;
     }
-    .entry-item .timestamp, .note-item .timestamp, .blacklist-item .timestamp {
-      font-size: 0.65rem;
+    .entry-item .entry-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.7rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
-      opacity: 0.6;
-      white-space: nowrap;
-      margin-top: 2px;
     }
-    .entry-item .delete-btn, .blacklist-item .delete-btn {
-      background: transparent;
-      border: none;
-      color: var(--red);
-      font-size: 0.7rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 0 4px;
-      flex-shrink: 0;
-    }
-    .entry-item .delete-btn:hover, .blacklist-item .delete-btn:hover { opacity: 1; }
-    .note-item .edit-btn {
-      background: transparent;
-      border: none;
+    .entry-item .entry-meta a {
       color: var(--accent);
-      font-size: 0.7rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 0 4px;
-      flex-shrink: 0;
+      text-decoration: none;
     }
-    .note-item .edit-btn:hover { opacity: 1; }
-    .note-item .note-actions { display: flex; gap: 4px; }
-
-    .empty-entries, .empty-notes, .empty-blacklist {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      opacity: 0.6;
-      text-align: center;
-      padding: 16px 0;
+    .entry-item .entry-meta a:hover { text-decoration: underline; }
+    .entry-item .entry-image {
+      max-width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .entry-item .entry-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
     }
 
     .flex-row {
@@ -394,7 +443,7 @@
       .custom-status-grid { flex-direction: column; }
       .custom-status-grid .field-group { flex: 1 1 100%; }
       .custom-status-grid .field-group .btn { width: 100%; }
-      .status-item .actions .custom-input input { width: 60px; }
+      .notes-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -412,10 +461,11 @@
   <script>
     // ─── STATE ──────────────────────────────────────────────
     let currentUser = null;
-    let statuses = { caffeine: null, activity: null, mood: null };
+    let statuses = { drinks: null, activity: null, mood: null };
     let entries = [];
     let notes = [];
     let blacklist = [];
+    let silenced = [];
 
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
@@ -470,7 +520,7 @@
         currentUser = data.user;
         renderHeader();
         if (currentUser) {
-          await Promise.all([fetchStatuses(), fetchEntries(), fetchNotes(), fetchBlacklist()]);
+          await Promise.all([fetchStatuses(), fetchEntries(), fetchNotes(), fetchBlacklist(), fetchSilenced()]);
         }
         renderContent();
       } catch {
@@ -483,7 +533,7 @@
     async function fetchStatuses() {
       try {
         const data = await apiFetch('/api/statuses');
-        statuses = data.statuses || { caffeine: null, activity: null, mood: null };
+        statuses = data.statuses || { drinks: null, activity: null, mood: null };
         if (currentUser) renderContent();
       } catch {}
     }
@@ -512,6 +562,14 @@
       } catch {}
     }
 
+    async function fetchSilenced() {
+      try {
+        const data = await apiFetch('/api/silence-logs');
+        silenced = data.silenced || [];
+        if (currentUser) renderContent();
+      } catch {}
+    }
+
     // ─── Status operations ──────────────────────────────────
     async function setStatus(key, value, display) {
       try {
@@ -529,16 +587,6 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    async function setCustomStatus(key) {
-      const input = document.getElementById(`custom-${key}`);
-      if (!input) return;
-      const val = input.value.trim();
-      if (!val) { showFlash('Please enter a value', 'error'); return; }
-      await setStatus(key, val, val);
-      input.value = '';
-    }
-
-    // ─── New: set status from the dedicated custom section ──
     async function setCustomFromSection() {
       const select = document.getElementById('customCategorySelect');
       const input = document.getElementById('customCategoryValue');
@@ -586,20 +634,70 @@
     }
 
     // ─── Diary entries ──────────────────────────────────────
-    async function createEntry(content) {
+    async function createEntry(data) {
       try {
-        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify({ content }) });
+        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
         await fetchEntries();
         showFlash('Entry added');
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
+    async function updateEntry(id, data) {
+      try {
+        await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        await fetchEntries();
+        showFlash('Entry updated');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
     async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
       try {
         await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
         await fetchEntries();
         showFlash('Entry deleted');
       } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    function openEntryEditor(entry = null) {
+      const isEdit = entry !== null;
+      const data = entry || { title: '', content: '', link: '', image_url: '', scheduled_at: '' };
+      const html = `
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto;">
+            <h2 style="font-family:var(--font-serif); font-weight:400; margin-bottom:16px;">${isEdit ? 'Edit Entry' : 'New Entry'}</h2>
+            <input type="text" id="entryTitle" placeholder="Title" value="${escapeHtml(data.title)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
+            <textarea id="entryContent" placeholder="Content..." style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; min-height:100px; margin-bottom:8px; outline:none; resize:vertical;">${escapeHtml(data.content)}</textarea>
+            <input type="text" id="entryLink" placeholder="Custom link (optional)" value="${escapeHtml(data.link)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
+            <input type="text" id="entryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
+            <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
+              <button class="btn btn-accent" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
+            </div>
+          </div>
+        </div>
+      `;
+      const div = document.createElement('div');
+      div.id = 'entryEditor';
+      div.innerHTML = html;
+      document.body.appendChild(div);
+    }
+
+    async function saveEntry(id) {
+      const title = document.getElementById('entryTitle').value.trim();
+      const content = document.getElementById('entryContent').value.trim();
+      const link = document.getElementById('entryLink').value.trim();
+      const image_url = document.getElementById('entryImage').value.trim();
+      const scheduled_at = document.getElementById('entryScheduled').value;
+      if (!content) { showFlash('Content is required', 'error'); return; }
+      const data = { title, content, link, image_url, scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null };
+      if (id) {
+        await updateEntry(id, data);
+      } else {
+        await createEntry(data);
+      }
+      document.getElementById('entryEditor').remove();
     }
 
     // ─── Blacklist operations ──────────────────────────────
@@ -625,6 +723,31 @@
         await apiFetch(`/api/blacklist/${ip}`, { method: 'DELETE' });
         await fetchBlacklist();
         showFlash('IP removed');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Silence logs ──────────────────────────────────────
+    async function addSilence() {
+      const targetInput = document.getElementById('silenceTarget');
+      const typeSelect = document.getElementById('silenceType');
+      if (!targetInput) return;
+      const target = targetInput.value.trim();
+      const type = typeSelect?.value || 'ip';
+      if (!target) { showFlash('Please enter a target', 'error'); return; }
+      try {
+        await apiFetch('/api/silence-logs', { method: 'POST', body: JSON.stringify({ target, type }) });
+        await fetchSilenced();
+        showFlash('Silence rule added');
+        targetInput.value = '';
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function removeSilence(id) {
+      if (!confirm('Remove silence rule?')) return;
+      try {
+        await apiFetch(`/api/silence-logs/${id}`, { method: 'DELETE' });
+        await fetchSilenced();
+        showFlash('Silence rule removed');
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
@@ -715,7 +838,7 @@
       }
 
       // ─── Statuses ──────────────────────────────────────────
-      const caffeine = getStatus('caffeine');
+      const drinks = getStatus('drinks');
       const activity = getStatus('activity');
       const mood = getStatus('mood');
 
@@ -723,7 +846,12 @@
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
-            ${renderStatusItem('caffeine', '☕', caffeine, [
+            ${renderStatusItem('drinks', '🍹', drinks, [
+              { value: 'water', label: '💧 Water' },
+              { value: 'flixweed', label: '🌿 Flixweed' },
+              { value: 'refresher', label: '🍋 Refresher' },
+              { value: 'smoothie', label: '🥤 Smoothie' },
+              { value: 'slushie', label: '🧊 Slushie' },
               { value: 'tea', label: '🫖 Tea' },
               { value: 'coffee', label: '☕️ Coffee' },
               { value: 'can', label: '🔋 Energy Drink' },
@@ -766,7 +894,7 @@
             <div class="field-group">
               <label>Category</label>
               <select id="customCategorySelect">
-                <option value="caffeine">Caffeine</option>
+                <option value="drinks">Drinks</option>
                 <option value="activity">Activity</option>
                 <option value="mood">Mood</option>
               </select>
@@ -783,9 +911,9 @@
         </div>
       `;
 
-      // ─── Notes ────────────────────────────────────────────
-      const notesList = notes.length ? notes.map(n => `
-        <div class="note-item">
+      // ─── Notes as sticky notes ────────────────────────────
+      const notesHtml = notes.length ? notes.map((n, i) => `
+        <div class="sticky-note" style="--rot: ${(i % 3 - 1) * 2}deg;">
           <div class="content">${escapeHtml(n.content)}</div>
           <div class="timestamp">${formatTimeAgo(n.created_at)}</div>
           <div class="note-actions">
@@ -802,41 +930,52 @@
             <input type="text" id="noteInput" placeholder="Write a note..." />
             <button class="btn btn-accent" onclick="addNote()">Add</button>
           </div>
-          <div class="notes-list">${notesList}</div>
+          <div class="notes-grid">${notesHtml}</div>
         </div>
       `;
 
       // ─── Diary Entries ────────────────────────────────────
       const diaryList = entries.length ? entries.map(e => `
         <div class="entry-item">
-          <div class="content">${escapeHtml(e.content)}</div>
-          <div class="timestamp">${formatTimeAgo(e.timestamp)}</div>
-          <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
+          <div class="entry-header">
+            <div class="entry-title">${escapeHtml(e.title) || 'Untitled'}</div>
+            <div class="entry-meta">
+              ${e.scheduled_at && e.scheduled_at > Date.now() ? '⏳ Scheduled' : ''}
+              ${e.published === 0 ? '📝 Draft' : ''}
+            </div>
+          </div>
+          ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="entry-image" alt="" />` : ''}
+          <div class="entry-content">${escapeHtml(e.content)}</div>
+          <div class="entry-meta">
+            ${e.link ? `<a href="${escapeHtml(e.link)}" target="_blank">🔗 Link</a>` : ''}
+            <span>${formatTimeAgo(e.timestamp)}</span>
+          </div>
+          <div class="entry-actions">
+            <button class="btn btn-sm" onclick="openEntryEditor(${JSON.stringify(e)})">✎ Edit</button>
+            <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteEntry(${e.id})">✕ Delete</button>
+          </div>
         </div>
       `).join('') : `<div class="empty-entries">No diary entries.</div>`;
 
       const diarySection = `
         <div class="card">
           <h2>📖 Diary Entries</h2>
-          <form class="entry-form" onsubmit="event.preventDefault(); createEntry(document.getElementById('entryContent').value);">
-            <textarea id="entryContent" placeholder="Write a short message, rant, or blog snippet..." required></textarea>
-            <div class="submit-row">
-              <button type="submit" class="btn btn-accent">Post Entry</button>
-            </div>
-          </form>
+          <button class="btn btn-accent" onclick="openEntryEditor()" style="margin-bottom:12px;">+ New Entry</button>
           <div class="entry-list">${diaryList}</div>
         </div>
       `;
 
       // ─── Blacklist ────────────────────────────────────────
       const blacklistItems = blacklist.length ? blacklist.map(b => `
-        <div class="blacklist-item">
-          <div class="content">
+        <div class="blacklist-item" style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
             <a href="https://whatismyipaddress.com/ip/${b.ip}" target="_blank" class="ip-link">${b.ip}</a>
             ${b.reason ? ' — ' + escapeHtml(b.reason) : ''}
           </div>
-          <div class="timestamp">${formatTimeAgo(b.created_at)}</div>
-          <button class="delete-btn" onclick="removeBlacklist('${b.ip}')">✕</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.65rem; color:var(--text-muted);">${formatTimeAgo(b.created_at)}</span>
+            <button class="delete-btn" onclick="removeBlacklist('${b.ip}')" style="background:transparent; border:none; color:var(--red); cursor:pointer;">✕</button>
+          </div>
         </div>
       `).join('') : `<div class="empty-blacklist">No blacklisted IPs.</div>`;
 
@@ -848,7 +987,33 @@
             <input type="text" id="blacklistReason" placeholder="Reason (optional)" />
             <button class="btn btn-danger" onclick="addBlacklist()">Block</button>
           </div>
-          <div class="blacklist-list">${blacklistItems}</div>
+          <div style="margin-top:12px;">${blacklistItems}</div>
+        </div>
+      `;
+
+      // ─── Silence logs ──────────────────────────────────────
+      const silencedItems = silenced.length ? silenced.map(s => `
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+          <span>${s.type === 'ip' ? '🌐' : '📄'} ${escapeHtml(s.target)}</span>
+          <div>
+            <span style="font-size:0.65rem; color:var(--text-muted);">${formatTimeAgo(s.created_at)}</span>
+            <button onclick="removeSilence(${s.id})" style="background:transparent; border:none; color:var(--red); cursor:pointer; margin-left:8px;">✕</button>
+          </div>
+        </div>
+      `).join('') : `<div class="empty-entries">No silence rules.</div>`;
+
+      const silenceSection = `
+        <div class="card">
+          <h2>🔇 Silence Logs</h2>
+          <div class="flex-row">
+            <input type="text" id="silenceTarget" placeholder="IP or path to silence" />
+            <select id="silenceType" style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text);">
+              <option value="ip">IP</option>
+              <option value="path">Path</option>
+            </select>
+            <button class="btn btn-accent" onclick="addSilence()">Add</button>
+          </div>
+          <div style="margin-top:12px;">${silencedItems}</div>
         </div>
       `;
 
@@ -860,7 +1025,7 @@
         </div>
       `;
 
-      mainContent.innerHTML = statusCards + customSection + notesSection + diarySection + blacklistSection + infoCard;
+      mainContent.innerHTML = statusCards + customSection + notesSection + diarySection + blacklistSection + silenceSection + infoCard;
     }
 
     function renderStatusItem(key, icon, data, options) {
@@ -879,10 +1044,6 @@
           <div class="meta">${meta}</div>
           <div class="actions">
             ${optionsHtml}
-            <div class="custom-input">
-              <input type="text" id="custom-${key}" placeholder="Custom..." />
-              <button class="btn-sm" onclick="setCustomStatus('${key}')">+</button>
-            </div>
             <button class="clear-btn" onclick="clearStatus('${key}')">✕ clear</button>
           </div>
         </div>
@@ -901,7 +1062,7 @@
       if (currentUser) {
         setInterval(async () => {
           if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-          await Promise.all([fetchStatuses(), fetchNotes(), fetchEntries(), fetchBlacklist()]);
+          await Promise.all([fetchStatuses(), fetchNotes(), fetchEntries(), fetchBlacklist(), fetchSilenced()]);
         }, 20000);
       }
     }
@@ -912,6 +1073,7 @@
     }
 
     init();
+    console.log('🕵️ Arsan\'s Archive · dashboard with all features');
   </script>
 </body>
 </html>
