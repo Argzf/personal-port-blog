@@ -20,7 +20,6 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +31,6 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-  // Notes
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +40,6 @@ async function initDatabase() {
       date TEXT
     )
   `);
-  // Blacklist
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +48,6 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
-  // Request logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +60,6 @@ async function initDatabase() {
       is_admin INTEGER DEFAULT 0
     )
   `);
-  // Diary entries
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,7 +73,6 @@ async function initDatabase() {
       date TEXT
     )
   `);
-  // Silence logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS silence_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +81,6 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
-  // Reviews
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS reviews (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,15 +105,12 @@ app.use(express.urlencoded({ extended: true }));
 // ─── Logging with status code ──────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  // Capture status code on finish
   const oldSend = res.send;
   res.send = function(data) {
-    // Log status code after response is sent
     const statusCode = res.statusCode;
     const ip = getClientIp(req);
     const userAgent = req.get('user-agent') || 'unknown';
     const timestamp = Date.now();
-    // Store in DB only for certain paths (avoid overloading)
     if (req.path.startsWith('/api') || req.path === '/' || req.path === '/admin' || req.path === '/admin/') {
       turso.execute({
         sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, status_code, is_admin)
@@ -133,7 +123,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── Cache‑control for API & auth ──────────────────────
+// ─── Cache‑control ──────────────────────────────────────
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -145,7 +135,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ─── Rate limiting for password login ────────────────────
+// ─── Rate limiting ──────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 3,
@@ -154,7 +144,6 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// ─── Real IP helper ──────────────────────────────────────
 function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
   const realIp = req.headers['x-real-ip'];
@@ -163,7 +152,7 @@ function getClientIp(req) {
   return req.ip || 'unknown';
 }
 
-// ─── Blacklist middleware ────────────────────────────────
+// ─── Blacklist ──────────────────────────────────────────
 async function isIpBlacklisted(ip) {
   const result = await turso.execute({
     sql: 'SELECT ip FROM blacklist WHERE ip = ?',
@@ -180,11 +169,12 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ─── Silence log check ───────────────────────────────────
+// ─── Silence log check (with wildcard support) ──────────
 async function shouldSilenceLog(ip, path) {
+  // Check if any silence rule matches: exact IP, exact path, or '*'
   const result = await turso.execute({
-    sql: 'SELECT type FROM silence_logs WHERE target = ? OR target = ?',
-    args: [ip, path],
+    sql: 'SELECT target FROM silence_logs WHERE target = ? OR target = ? OR target = ?',
+    args: [ip, path, '*'],
   });
   return result.rows.length > 0;
 }
@@ -221,7 +211,6 @@ passport.use(new DiscordStrategy({
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-// ─── JWT Helpers ─────────────────────────────────────────
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, username: user.username, avatar: user.avatar },
@@ -235,7 +224,6 @@ function verifyToken(token) {
   catch { return null; }
 }
 
-// ─── Auth Middleware ─────────────────────────────────────
 function authMiddleware(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
@@ -245,7 +233,6 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-// ─── Helpers ─────────────────────────────────────────────
 function getTehranDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
 }
@@ -259,10 +246,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 async function sendTelegramMessage(text) {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.warn('Telegram credentials missing. Message not sent:', text);
-    return;
-  }
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     await fetch(url, {
@@ -275,9 +259,7 @@ async function sendTelegramMessage(text) {
         disable_web_page_preview: true,
       }),
     });
-  } catch (e) {
-    console.error('Telegram send error:', e);
-  }
+  } catch (e) { console.error('Telegram error:', e); }
 }
 
 function formatIpLink(ip) {
@@ -291,7 +273,6 @@ async function logAction(action, details = {}, req = null, statusCode = 200) {
 
   const userAgent = req?.get('user-agent') || 'unknown';
   const timestamp = Date.now();
-
   const user = req?.user?.username || 'guest';
   const time = new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Tehran' });
   let msg = `<b>${action}</b>\n`;
@@ -310,21 +291,17 @@ async function logAction(action, details = {}, req = null, statusCode = 200) {
   });
   const count = countResult.rows[0]?.count || 0;
   msg += `📊 Requests (24h): ${count}`;
-
   await sendTelegramMessage(msg);
 }
 
 // ─── Middleware to log page visits ──────────────────────
 app.use(async (req, res, next) => {
-  const path = req.path;
-  if (path === '/' || path === '/admin' || path === '/admin/') {
-    // We'll log after status is known; the logging middleware already does it.
-  }
+  // The logging middleware already captures all requests with status codes.
   next();
 });
 
 // ════════════════════════════════════════════════════════════════
-//  ROUTES – ORDER MATTERS!
+//  ROUTES
 // ════════════════════════════════════════════════════════════════
 
 // ─── Discord OAuth ──────────────────────────────────────
@@ -348,18 +325,15 @@ app.get('/auth/discord/callback',
   }
 );
 
-// ─── Password fallback login ────────────────────────────
+// ─── Password login ──────────────────────────────────────
 app.post('/auth/password', loginLimiter, async (req, res) => {
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
-  
   if (!expectedPassword) {
     return res.status(500).json({ error: 'Password authentication not configured.' });
   }
-  
   const trimmedInput = (password || '').trim();
   const trimmedExpected = expectedPassword.trim();
-  
   if (trimmedInput === trimmedExpected) {
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
@@ -376,7 +350,6 @@ app.post('/auth/password', loginLimiter, async (req, res) => {
     await logAction('Admin Login', { method: 'password' }, req, 200);
     return res.json({ success: true });
   }
-  
   await logAction('Failed Login Attempt', { method: 'password' }, req, 401);
   res.status(401).json({ error: 'Invalid password' });
 });
@@ -480,17 +453,21 @@ app.put('/api/notes/:id', authMiddleware, async (req, res) => {
 
 app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const result = await turso.execute({
-    sql: 'SELECT content FROM notes WHERE id = ?',
-    args: [id],
-  });
-  const content = result.rows[0]?.content || 'unknown';
   await turso.execute({
     sql: 'DELETE FROM notes WHERE id = ?',
     args: [id],
   });
-  await logAction('Note Deleted', { id, content: content.slice(0, 50) }, req, 200);
+  await logAction('Note Deleted', { id }, req, 200);
   res.json({ success: true });
+});
+
+// ─── Public notes ──────────────────────────────────────
+app.get('/api/public-notes', async (req, res) => {
+  const result = await turso.execute({
+    sql: 'SELECT id, content, created_at FROM notes ORDER BY created_at DESC LIMIT 20',
+  });
+  const active = result.rows.filter(row => !isExpired(row.created_at));
+  res.json({ notes: active });
 });
 
 // ─── Diary entries ──────────────────────────────────────
@@ -513,8 +490,11 @@ app.post('/api/entries', authMiddleware, async (req, res) => {
   }
   const now = Date.now();
   const date = getTehranDate();
-  const scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+  let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+  // If no scheduled_at, publish immediately (published = 1)
   const published = (scheduled && scheduled > now) ? 0 : 1;
+  // If scheduled is null, treat as immediate publish
+  if (!scheduled) scheduled = null;
   await turso.execute({
     sql: `INSERT INTO entries (title, content, link, image_url, scheduled_at, published, timestamp, date) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -530,9 +510,10 @@ app.put('/api/entries/:id', authMiddleware, async (req, res) => {
   if (!content || content.trim().length === 0) {
     return res.status(400).json({ error: 'Content is required' });
   }
-  const scheduled = scheduled_at ? parseInt(scheduled_at) : null;
   const now = Date.now();
+  let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
   const published = (scheduled && scheduled > now) ? 0 : 1;
+  if (!scheduled) scheduled = null;
   await turso.execute({
     sql: `UPDATE entries 
           SET title = ?, content = ?, link = ?, image_url = ?, scheduled_at = ?, published = ? 
@@ -676,13 +657,10 @@ app.get('/api/me', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  STATIC FILES & FALLBACKS – ORDER MATTERS!
+//  STATIC FILES & FALLBACKS
 // ════════════════════════════════════════════════════════════════
-
-// 1. Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
-// 2. Admin routes (override static for /admin)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
@@ -690,13 +668,10 @@ app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
-// 3. 404 handler – everything else
 app.get('*', (req, res) => {
-  // If it's an API request, return JSON 404
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  // Otherwise serve the custom 404 page
   res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
 });
 
