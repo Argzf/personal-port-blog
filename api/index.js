@@ -171,7 +171,6 @@ app.use(async (req, res, next) => {
 
 // ─── Silence log check (with wildcard support) ──────────
 async function shouldSilenceLog(ip, path) {
-  // Check if any silence rule matches: exact IP, exact path, or '*'
   const result = await turso.execute({
     sql: 'SELECT target FROM silence_logs WHERE target = ? OR target = ? OR target = ?',
     args: [ip, path, '*'],
@@ -296,7 +295,6 @@ async function logAction(action, details = {}, req = null, statusCode = 200) {
 
 // ─── Middleware to log page visits ──────────────────────
 app.use(async (req, res, next) => {
-  // The logging middleware already captures all requests with status codes.
   next();
 });
 
@@ -461,7 +459,6 @@ app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   res.json({ success: true });
 });
 
-// ─── Public notes ──────────────────────────────────────
 app.get('/api/public-notes', async (req, res) => {
   const result = await turso.execute({
     sql: 'SELECT id, content, created_at FROM notes ORDER BY created_at DESC LIMIT 20',
@@ -491,9 +488,7 @@ app.post('/api/entries', authMiddleware, async (req, res) => {
   const now = Date.now();
   const date = getTehranDate();
   let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
-  // If no scheduled_at, publish immediately (published = 1)
   const published = (scheduled && scheduled > now) ? 0 : 1;
-  // If scheduled is null, treat as immediate publish
   if (!scheduled) scheduled = null;
   await turso.execute({
     sql: `INSERT INTO entries (title, content, link, image_url, scheduled_at, published, timestamp, date) 
