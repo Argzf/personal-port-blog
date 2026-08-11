@@ -20,7 +20,6 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +31,6 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-  // Notes
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +40,6 @@ async function initDatabase() {
       date TEXT
     )
   `);
-  // Blacklist
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +48,6 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
-  // Request logs (for rate limiting & request counting)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,13 +71,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging ─────────────────────────────────────────────
+// ─── Logging (only for requests) ────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// ─── Cache‑control for API & auth routes ────────────────
+// ─── Cache‑control for API & auth ──────────────────────
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -95,12 +91,21 @@ app.use((req, res, next) => {
 
 // ─── Rate limiting for password login ────────────────────
 const loginLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 3, // 3 attempts per minute
+  windowMs: 60 * 1000,
+  max: 3,
   message: { error: 'Too many login attempts. Please try again later.' },
   keyGenerator: (req) => req.ip,
   skipSuccessfulRequests: true,
 });
+
+// ─── Real IP helper ──────────────────────────────────────
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  if (forwarded) return forwarded.split(',')[0].trim();
+  if (realIp) return realIp;
+  return req.ip || 'unknown';
+}
 
 // ─── Blacklist middleware ────────────────────────────────
 async function isIpBlacklisted(ip) {
@@ -112,8 +117,9 @@ async function isIpBlacklisted(ip) {
 }
 
 app.use(async (req, res, next) => {
-  if (await isIpBlacklisted(req.ip)) {
-    return res.status(403).json({ error: 'Your IP has been blocked.' });
+  const ip = getClientIp(req);
+  if (await isIpBlacklisted(ip)) {
+    return res.status(403).send('Your IP has been blocked.');
   }
   next();
 });
@@ -201,6 +207,7 @@ async function sendTelegramMessage(text) {
         chat_id: TELEGRAM_CHAT_ID,
         text: text,
         parse_mode: 'HTML',
+        disable_web_page_preview: true,
       }),
     });
   } catch (e) {
@@ -213,10 +220,11 @@ function formatIpLink(ip) {
 }
 
 async function logAction(action, details = {}, req = null) {
-  const ip = req?.ip || 'unknown';
+  const ip = getClientIp(req);
   const userAgent = req?.get('user-agent') || 'unknown';
   const timestamp = Date.now();
 
+  // Store request log for counting
   if (req) {
     await turso.execute({
       sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, is_admin) 
@@ -241,10 +249,20 @@ async function logAction(action, details = {}, req = null) {
     args: [ip, cutoff],
   });
   const count = countResult.rows[0]?.count || 0;
-  msg += `📊 Requests (24h): ${count}\n`;
+  msg += `📊 Requests (24h): ${count}`;
 
   await sendTelegramMessage(msg);
 }
+
+// ─── Middleware to log page visits ──────────────────────
+app.use(async (req, res, next) => {
+  const path = req.path;
+  // Only log page views for homepage and admin
+  if (path === '/' || path === '/admin' || path === '/admin/') {
+    await logAction('Site Visit', { page: path }, req);
+  }
+  next();
+});
 
 // ════════════════════════════════════════════════════════════════
 //  ROUTES
