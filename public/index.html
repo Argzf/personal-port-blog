@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    /* ── same as before, with carousel additions ── */
+    /* ── full CSS restored ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --board-bg: #2C1E16; --board-grid: rgba(60,40,30,0.3);
@@ -50,40 +50,158 @@
     }
     .container { max-width: 860px; width: 100%; }
 
-    .board-header { /* same as before */ }
-    /* ... all previous styles ... */
-    /* Carousel for reviews */
-    .review-carousel {
-      position: relative;
-      overflow: hidden;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 20px 24px;
-      margin: 8px 0;
-      min-height: 100px;
+    /* ── header ── */
+    .board-header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding: clamp(12px,2vw,20px) clamp(16px,2.5vw,24px);
+      background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 4px;
+      box-shadow: 0 8px 24px var(--shadow); position: relative; gap: 8px;
     }
-    .review-slide {
-      display: none;
-      animation: fadeIn 0.5s;
+    .board-header::after {
+      content: ""; position: absolute; bottom: -6px; left: 20%; right: 20%;
+      height: 2px; background: var(--red-string); opacity: 0.3;
     }
-    .review-slide.active { display: block; }
-    .review-slide .review-name { font-weight: 600; color: var(--red-string); }
-    .review-slide .review-message { font-size: 0.95rem; margin: 4px 0; }
-    .review-slide .review-time { font-size: 0.6rem; color: var(--ink-light); font-family: var(--font-mono); opacity: 0.6; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .board-header .badge {
+      font-family: var(--font-mono); font-size: clamp(0.5rem,1vw,0.6rem);
+      letter-spacing: 0.06em; color: var(--red-string);
+      border: 1px solid var(--red-string); padding: 2px 12px; border-radius: 2px;
+      text-transform: uppercase; opacity: 0.8; display: inline-block; margin-bottom: 2px;
+    }
+    .board-header h1 {
+      font-family: var(--font-serif); font-size: clamp(1.4rem,5vw,2.2rem);
+      font-weight: 400; letter-spacing: -0.02em;
+      display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap;
+    }
+    .board-header h1 .sub {
+      font-family: var(--font-body); font-size: clamp(0.7rem,1.8vw,1rem);
+      font-weight: 400; color: var(--ink-light); font-style: normal;
+      background: var(--tag-bg); padding: 0 12px; border-radius: 20px;
+      border: 1px solid var(--card-border); white-space: nowrap;
+    }
+    .board-header .case-ref {
+      font-family: var(--font-mono); font-size: clamp(0.6rem,1.2vw,0.7rem);
+      color: var(--ink-light); letter-spacing: 0.04em; text-align: right; line-height: 1.4;
+      flex-shrink: 0;
+    }
+    .board-header .case-ref .age-highlight { color: var(--red-string); font-weight: 600; }
+    .board-header .red-string-decoration {
+      position: absolute; bottom: -12px; left: 0; right: 0; height: 12px;
+      background: repeating-linear-gradient(90deg, var(--red-string) 0px, var(--red-string) 4px, transparent 4px, transparent 12px);
+      opacity: 0.15; border-radius: 0 0 2px 2px;
+    }
 
-    .carousel-dots {
-      display: flex; justify-content: center; gap: 6px; margin-top: 12px;
-    }
-    .carousel-dots .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--card-border);
-      cursor: pointer; transition: 0.2s;
-    }
-    .carousel-dots .dot.active { background: var(--red-string); }
+    /* ── content ── */
+    .board-content { display: flex; flex-direction: column; gap: clamp(18px,3vw,28px); }
 
-    /* Diary entries etc. */
+    /* ── polaroid grid ── */
+    .polaroid-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,180px),1fr));
+      gap: clamp(20px,3vw,32px) clamp(16px,2vw,24px);
+      padding: 8px 4px; position: relative;
+    }
+    .polaroid-grid .red-string-svg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: visible;
+    }
+    .polaroid-grid .red-string-svg path {
+      stroke: var(--red-string); stroke-width: 2; fill: none; opacity: 0.35;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .polaroid-grid .red-string-svg circle { fill: var(--red-string); opacity: 0.45; r: 3.5; }
+
+    .polaroid {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      padding: clamp(10px,1.5vw,14px) clamp(10px,1.5vw,14px) clamp(12px,1.8vw,16px);
+      box-shadow: 0 8px 20px var(--shadow), 0 2px 4px rgba(0,0,0,0.2);
+      border-radius: 2px; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transform: rotate(var(--rot, 0deg)); min-width: 0; z-index: 1;
+    }
+    .polaroid:hover { transform: rotate(0deg) scale(1.02); z-index: 10; box-shadow: 0 12px 32px var(--shadow); }
+    .polaroid::before {
+      content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+      width: 14px; height: 14px;
+      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
+      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15); z-index: 2;
+    }
+    .polaroid::after {
+      content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+      width: 2px; height: 6px; background: rgba(0,0,0,0.3); border-radius: 0 0 50% 50%; z-index: 1;
+    }
+    .polaroid .photo-icon { font-size: clamp(1.5rem,3vw,2rem); text-align: center; display: block; margin-bottom: 2px; opacity: 0.8; }
+    .polaroid .label {
+      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.55rem);
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-light);
+      font-weight: 600; text-align: center; margin-bottom: 2px;
+    }
+    .polaroid .value {
+      font-family: var(--font-hand); font-size: clamp(1rem,2.5vw,1.3rem);
+      font-weight: 700; text-align: center; line-height: 1.3; color: var(--ink);
+      min-height: 2.2rem; display: flex; flex-direction: column; justify-content: center; gap: 0;
+    }
+    .polaroid .meta {
+      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
+      color: var(--ink-light); text-align: center; margin-top: 4px; opacity: 0.6;
+      border-top: 1px dashed var(--card-border); padding-top: 4px; min-height: 1.4rem;
+    }
+    .polaroid .evidence-tag {
+      position: absolute; bottom: -6px; right: -6px;
+      background: var(--red-string); color: var(--card-bg);
+      font-family: var(--font-mono); font-size: clamp(0.4rem,0.7vw,0.45rem);
+      letter-spacing: 0.04em; padding: 1px 8px; border-radius: 1px; opacity: 0.7; text-transform: uppercase;
+    }
+
+    /* ── subject profile ── */
+    .subject-profile {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
+      border-radius: 2px; position: relative; transform: rotate(-0.5deg); margin: 8px 0 4px;
+    }
+    .subject-profile::before {
+      content: ""; position: absolute; top: -10px; left: 20%;
+      width: 14px; height: 14px;
+      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
+      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .subject-profile .stamp {
+      font-family: var(--font-mono); font-size: clamp(0.45rem,0.8vw,0.5rem);
+      letter-spacing: 0.06em; color: var(--red-string);
+      border: 1px solid var(--red-string); padding: 1px 10px; border-radius: 1px;
+      display: inline-block; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px;
+    }
+    .subject-profile h2 { font-family: var(--font-serif); font-size: clamp(1.1rem,3vw,1.4rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.3; }
+    .subject-profile h2 .sub { font-family: var(--font-body); font-size: clamp(0.75rem,1.5vw,0.9rem); font-weight: 300; color: var(--ink-light); font-style: italic; }
+    .subject-profile .bio-text { font-size: clamp(0.8rem,1.5vw,0.9rem); line-height: 1.7; margin-top: 4px; color: var(--ink); }
+    .subject-profile .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .subject-profile .tags .tag {
+      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
+      letter-spacing: 0.04em; background: var(--tag-bg); border: 1px solid var(--card-border);
+      padding: 2px 12px; border-radius: 2px; color: var(--ink-light); white-space: nowrap;
+    }
+    .subject-profile .tags .tag.accent { border-color: var(--red-string); color: var(--red-string); }
+
+    /* ── sticky notes ── */
+    .sticky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px,2.5vw,24px); }
+    .sticky {
+      background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
+      padding: clamp(12px,2vw,18px); box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+      border-radius: 1px; position: relative; transform: rotate(var(--rot, 0deg));
+    }
+    .sticky::before {
+      content: ""; position: absolute; top: -6px; left: 30%;
+      width: 12px; height: 12px;
+      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
+      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .sticky h3 { font-family: var(--font-hand); font-size: clamp(0.85rem,1.8vw,0.95rem); font-weight: 700; margin-bottom: 4px; color: var(--ink); letter-spacing: -0.01em; }
+    .sticky ul { list-style: none; padding: 0; margin: 0; }
+    .sticky ul li { font-family: var(--font-hand); font-size: clamp(0.75rem,1.5vw,0.85rem); font-weight: 400; padding: 1px 0; display: flex; align-items: baseline; gap: 4px; color: var(--ink); opacity: 0.85; }
+    .sticky ul li .dot { color: var(--red-string); font-weight: 700; font-size: 0.6rem; }
+    .sticky ul li em { font-style: italic; opacity: 0.7; }
+
+    /* ── diary folder ── */
     .diary-folder {
       background: var(--card-bg); border: 1px solid var(--card-border);
       padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
@@ -126,6 +244,7 @@
     }
     .diary-entry .entry-actions .btn-sm:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
 
+    /* ── quote button ── */
     #quoteButton {
       position: fixed; bottom: 24px; right: 24px;
       background: var(--red-string); color: var(--card-bg);
@@ -137,6 +256,7 @@
     }
     #quoteButton:hover { transform: scale(1.05); }
 
+    /* ── sticky note container ── */
     .sticky-note-container {
       background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
       border-radius: 6px; padding: 14px 16px;
@@ -153,11 +273,55 @@
       float: right;
     }
 
-    .footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border); text-align: center; }
-    .footer .links { display: flex; justify-content: center; gap: clamp(12px,2.5vw,24px); flex-wrap: wrap; margin-bottom: 12px; }
-    .footer .links a { font-family: var(--font-mono); font-size: clamp(0.65rem,1vw,0.75rem); color: var(--ink-light); text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s ease; border-bottom: 1px dotted transparent; }
+    /* ── review carousel ── */
+    .review-carousel {
+      position: relative;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 8px 0;
+      min-height: 100px;
+    }
+    .review-slide {
+      display: none;
+      animation: fadeIn 0.5s;
+    }
+    .review-slide.active { display: block; }
+    .review-slide .review-name { font-weight: 600; color: var(--red-string); }
+    .review-slide .review-message { font-size: 0.95rem; margin: 4px 0; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .carousel-dots {
+      display: flex; justify-content: center; gap: 6px; margin-top: 12px;
+    }
+    .carousel-dots .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--card-border);
+      cursor: pointer; transition: 0.2s;
+    }
+    .carousel-dots .dot.active { background: var(--red-string); }
+
+    /* ── footer ── */
+    .footer {
+      margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border);
+      text-align: center;
+    }
+    .footer .links {
+      display: flex; justify-content: center; gap: clamp(12px,2.5vw,24px);
+      flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .footer .links a {
+      font-family: var(--font-mono); font-size: clamp(0.65rem,1vw,0.75rem);
+      color: var(--ink-light); text-decoration: none; letter-spacing: 0.04em;
+      transition: color 0.2s ease; border-bottom: 1px dotted transparent;
+    }
     .footer .links a:hover { color: var(--red-string); border-bottom-color: var(--red-string); }
-    .footer .footer-note { font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem); color: var(--ink-light); opacity: 0.4; letter-spacing: 0.04em; }
+    .footer .footer-note {
+      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
+      color: var(--ink-light); opacity: 0.4; letter-spacing: 0.04em;
+    }
 
     @media (max-width: 600px) {
       .board-header { flex-direction: column; align-items: flex-start; }
@@ -194,7 +358,7 @@
 
     <!-- ─── CONTENT ─── -->
     <div class="board-content">
-      <!-- STATUS POLAROIDS (same as before) -->
+      <!-- STATUS POLAROIDS -->
       <div style="position:relative;">
         <div style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
           ══ observation log ══
@@ -298,10 +462,6 @@
   <button id="quoteButton" onclick="copyQuote()">📝 Quote</button>
 
   <script>
-    // ─── Same as before, with carousel logic ──────────────────
-    // ... (copy the JavaScript from the previous version, but add carousel functions)
-    // I'll include the full script here for completeness.
-
     // ─── Dynamic Age ────────────────────────────────────────
     function calculateAge() {
       const birth = new Date('2012-05-10');
@@ -406,16 +566,14 @@
         return;
       }
 
-      // Build slides
+      // Build slides – no timestamp
       container.innerHTML = reviews.map((r, i) => `
         <div class="review-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
           <div class="review-name">${escapeHtml(r.name)}</div>
           <div class="review-message">${escapeHtml(r.message)}</div>
-          <div class="review-time">${formatTimeAgo(r.timestamp)}</div>
         </div>
       `).join('');
 
-      // Build dots
       dotsContainer.innerHTML = reviews.map((_, i) => `
         <div class="dot ${i === 0 ? 'active' : ''}" onclick="goToReview(${i})"></div>
       `).join('');
@@ -427,7 +585,7 @@
           const total = reviews.length;
           const next = (reviewCarouselIndex + 1) % total;
           goToReview(next);
-        }, 6000);
+        }, 4000); // faster: 4 seconds
       }
     }
 
