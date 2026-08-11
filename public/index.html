@@ -668,12 +668,12 @@
             <circle id="dotC" cx="0" cy="0" r="0" />
           </svg>
 
-          <!-- EXHIBIT A: Caffeine -->
-          <div class="polaroid" style="--rot:-1.5deg;" id="caffeineItem">
+          <!-- EXHIBIT A: Drinks -->
+          <div class="polaroid" style="--rot:-1.5deg;" id="drinksItem">
             <span class="photo-icon">☕</span>
-            <div class="label">caffeine</div>
-            <div class="value" id="caffeineDisplay">—</div>
-            <div class="meta" id="caffeineMeta">not logged</div>
+            <div class="label">drinks</div>
+            <div class="value" id="drinksDisplay">—</div>
+            <div class="meta" id="drinksMeta">not logged</div>
             <span class="evidence-tag">EXHIBIT A</span>
           </div>
 
@@ -891,7 +891,7 @@
 
     // ─── Status logic (fetch from API, display "ago" only) ───
 
-    let statuses = { caffeine: null, activity: null, mood: null };
+    let statuses = { drinks: null, activity: null, mood: null };
 
     function now() { return new Date(); }
 
@@ -909,8 +909,8 @@
         const res = await fetch('/api/statuses', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch statuses');
         const data = await res.json();
-        // data.statuses is { caffeine, activity, mood } each with value, display, timestamp, date
-        statuses = data.statuses || { caffeine: null, activity: null, mood: null };
+        // data.statuses is { drinks, activity, mood } each with value, display, timestamp, date
+        statuses = data.statuses || { drinks: null, activity: null, mood: null };
         renderStatuses();
       } catch (e) {
         console.warn('Could not fetch statuses, using fallback:', e);
@@ -920,7 +920,7 @@
     }
 
     function renderStatuses() {
-      renderStatus('caffeine');
+      renderStatus('drinks');
       renderStatus('activity');
       renderStatus('mood');
       updateCaseAge();
