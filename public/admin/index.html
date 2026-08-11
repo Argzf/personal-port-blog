@@ -9,98 +9,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --bg: #1A1410;
-      --surface: #28201B;
-      --surface-2: #3A322C;
-      --border: #4A3F38;
-      --text: #EDE4D6;
-      --text-muted: #A89888;
-      --accent: #D4875E;
-      --accent-dim: #B86A44;
-      --green: #7EE787;
-      --red: #F7787A;
-      --shadow: rgba(0, 0, 0, 0.6);
-      --radius: 10px;
-      --font: 'Inter', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      --font-serif: 'DM Serif Display', serif;
-      --font-hand: 'Kalam', cursive;
-      --sticky-yellow: #FCE9B6;
-      --sticky-border: #E8D09E;
-      --ink: #1E1814;
-      --ink-light: #4A3F38;
+      --bg: #1A1410; --surface: #28201B; --surface-2: #3A322C; --border: #4A3F38;
+      --text: #EDE4D6; --text-muted: #A89888; --accent: #D4875E; --accent-dim: #B86A44;
+      --green: #7EE787; --red: #F7787A; --shadow: rgba(0,0,0,0.6); --radius: 10px;
+      --font: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'DM Serif Display', serif; --font-hand: 'Kalam', cursive;
     }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --sticky-yellow: #3A3220;
-        --sticky-border: #4A3F30;
-        --ink: #EDE4D6;
-        --ink-light: #A89888;
-      }
-    }
-
     html { font-size: 16px; }
-
     body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      line-height: 1.6; min-height: 100vh; display: flex; justify-content: center;
       padding: 24px 16px;
-      background-image: radial-gradient(circle at 20% 50%, rgba(90, 60, 40, 0.15) 0%, transparent 60%);
+      background-image: radial-gradient(circle at 20% 50%, rgba(90,60,40,0.15) 0%, transparent 60%);
     }
-
     .container { max-width: 860px; width: 100%; }
-
     .header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
     }
-    .header h1 {
-      font-family: var(--font-serif);
-      font-size: 1.8rem;
-      font-weight: 400;
-      letter-spacing: -0.02em;
-    }
-    .header h1 .sub {
-      font-family: var(--font);
-      font-size: 0.85rem;
-      font-weight: 300;
-      color: var(--text-muted);
-    }
-    .header .user-area {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .header h1 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 400; letter-spacing: -0.02em; }
+    .header h1 .sub { font-family: var(--font); font-size: 0.85rem; font-weight: 300; color: var(--text-muted); }
+    .header .user-area { display: flex; align-items: center; gap: 14px; }
 
     .btn {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 6px 18px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: var(--font);
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-      line-height: 1.4;
-      white-space: nowrap;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px;
+      padding: 6px 18px; font-size: 0.75rem; font-weight: 500; color: var(--text);
+      cursor: pointer; transition: all 0.2s ease; font-family: var(--font); text-decoration: none;
+      display: inline-block; text-align: center; line-height: 1.4; white-space: nowrap;
     }
     .btn:hover { background: var(--border); border-color: var(--accent-dim); }
     .btn-accent { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -110,313 +46,93 @@
     .btn-danger { border-color: var(--red); color: var(--red); }
     .btn-danger:hover { background: var(--red); color: var(--bg); }
     .btn-block { display: block; width: 100%; text-align: center; }
-    .btn-sm {
-      font-size: 0.6rem;
-      padding: 2px 12px;
-      line-height: 1.6;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      color: var(--text);
-      cursor: pointer;
-      transition: 0.15s;
-      font-family: var(--font);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .btn-sm { font-size: 0.6rem; padding: 2px 12px; line-height: 1.6; background: var(--surface-2); border: 1px solid var(--border); border-radius: 30px; color: var(--text); cursor: pointer; transition: 0.15s; font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; }
     .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px 28px;
-      margin-bottom: 20px;
-      box-shadow: 0 8px 24px var(--shadow);
-    }
-    .card h2 {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      font-weight: 400;
-      letter-spacing: -0.01em;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .card h2 .badge-count {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      background: var(--surface-2);
-      padding: 0 10px;
-      border-radius: 20px;
-      color: var(--text-muted);
-      font-weight: 400;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 20px; box-shadow: 0 8px 24px var(--shadow); }
+    .card h2 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .card h2 .badge-count { font-family: var(--font-mono); font-size: 0.65rem; background: var(--surface-2); padding: 0 10px; border-radius: 20px; color: var(--text-muted); font-weight: 400; }
 
     .login-card { text-align: center; padding: 48px 28px; }
     .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
     .login-card h2 { font-size: 1.4rem; margin-bottom: 4px; justify-content: center; }
     .login-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
     .login-form { max-width: 340px; margin: 0 auto; }
-    .login-form input[type="password"] {
-      width: 100%; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px;
-      font-family: var(--font); outline: none;
-    }
+    .login-form input[type="password"] { width: 100%; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px; font-family: var(--font); outline: none; }
     .login-form input[type="password"]:focus { border-color: var(--accent); }
-    .login-divider {
-      display: flex; align-items: center; gap: 16px; margin: 20px 0;
-      color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono);
-    }
+    .login-divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono); }
     .login-divider::before, .login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-    .status-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 18px;
-      transition: border-color 0.2s;
-    }
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .status-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; transition: border-color 0.2s; }
     .status-item:hover { border-color: var(--accent-dim); }
-    .status-item .label {
-      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
-      display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
-    }
-    .status-item .current {
-      font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem;
-    }
+    .status-item .label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; font-family: var(--font-mono); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .status-item .current { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem; }
     .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
-    .status-item .meta {
-      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
-      opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem;
-    }
-    .status-item .actions {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
-    }
-    .status-item .actions button {
-      background: transparent; border: 1px solid var(--border); border-radius: 30px;
-      padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
-      cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8;
-    }
+    .status-item .meta { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem; }
+    .status-item .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+    .status-item .actions button { background: transparent; border: 1px solid var(--border); border-radius: 30px; padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8; }
     .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
     .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-    .status-item .clear-btn {
-      background: transparent; border: none; color: var(--text-muted);
-      font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
-      font-family: var(--font); padding: 2px 4px; margin-left: 4px;
-    }
+    .status-item .clear-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s; font-family: var(--font); padding: 2px 4px; margin-left: 4px; }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
-    .custom-status-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: flex-end;
-    }
-    .custom-status-grid .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1 1 150px;
-    }
-    .custom-status-grid .field-group label {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-family: var(--font-mono);
-    }
-    .custom-status-grid .field-group select,
-    .custom-status-grid .field-group input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.85rem;
-      font-family: var(--font);
-      outline: none;
-      width: 100%;
-    }
-    .custom-status-grid .field-group select:focus,
-    .custom-status-grid .field-group input:focus { border-color: var(--accent); }
+    .custom-status-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .custom-status-grid .field-group { display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; }
+    .custom-status-grid .field-group label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; font-family: var(--font-mono); }
+    .custom-status-grid .field-group select, .custom-status-grid .field-group input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.85rem; font-family: var(--font); outline: none; width: 100%; }
+    .custom-status-grid .field-group select:focus, .custom-status-grid .field-group input:focus { border-color: var(--accent); }
     .custom-status-grid .field-group .btn { padding: 8px 16px; font-size: 0.85rem; width: 100%; }
 
-    /* sticky note container for notes */
     .sticky-note-container {
-      background: var(--sticky-yellow);
-      border: 1px solid var(--sticky-border);
-      border-radius: 6px;
-      padding: 14px 16px;
-      box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
-      transform: rotate(-0.5deg);
+      background: #FCE9B6; border: 1px solid #E8D09E; border-radius: 6px; padding: 14px 16px;
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.2); transform: rotate(-0.5deg);
+      margin: 8px 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      .sticky-note-container { background: #3A3220; border-color: #4A3F30; }
     }
     .sticky-note-container .note-entry {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      font-family: var(--font-hand);
-      font-size: 0.9rem;
-      color: var(--ink);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-family: var(--font-hand); font-size: 0.9rem; color: #1E1814;
     }
     .sticky-note-container .note-entry:last-child { border-bottom: none; }
     .sticky-note-container .note-entry .note-content { flex: 1; }
-    .sticky-note-container .note-entry .note-time {
-      font-size: 0.6rem;
-      color: var(--ink-light);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      margin: 0 8px;
-      white-space: nowrap;
-    }
-    .sticky-note-container .note-entry .note-actions button {
-      background: transparent;
-      border: none;
-      font-size: 0.6rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      padding: 0 4px;
-    }
+    .sticky-note-container .note-entry .note-time { font-size: 0.6rem; color: #4A3F38; font-family: var(--font-mono); opacity: 0.6; margin: 0 8px; white-space: nowrap; }
+    .sticky-note-container .note-entry .note-actions button { background: transparent; border: none; font-size: 0.6rem; cursor: pointer; opacity: 0.4; transition: opacity 0.2s; padding: 0 4px; }
     .sticky-note-container .note-entry .note-actions .edit-btn { color: var(--accent); }
     .sticky-note-container .note-entry .note-actions .delete-btn { color: var(--red); }
     .sticky-note-container .note-entry .note-actions button:hover { opacity: 1; }
-    .empty-notes { color: var(--text-muted); font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 16px 0; }
 
-    .entry-form input, .entry-form textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: var(--font);
-      outline: none;
-      margin-bottom: 8px;
-    }
+    .entry-form input, .entry-form textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9rem; font-family: var(--font); outline: none; margin-bottom: 8px; }
     .entry-form input:focus, .entry-form textarea:focus { border-color: var(--accent); }
-    .entry-form textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .entry-form .submit-row {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-    }
+    .entry-form textarea { resize: vertical; min-height: 80px; }
+    .entry-form .submit-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
-    .entry-list {
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .entry-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .entry-item .entry-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .entry-item .entry-title {
-      font-weight: 600;
-      font-size: 1rem;
-    }
-    .entry-item .entry-content {
-      font-size: 0.9rem;
-    }
-    .entry-item .entry-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-    }
-    .entry-item .entry-meta a {
-      color: var(--accent);
-      text-decoration: none;
-    }
+    .entry-list { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .entry-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+    .entry-item .entry-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .entry-item .entry-title { font-weight: 600; font-size: 1rem; }
+    .entry-item .entry-content { font-size: 0.9rem; }
+    .entry-item .entry-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .entry-item .entry-meta a { color: var(--accent); text-decoration: none; }
     .entry-item .entry-meta a:hover { text-decoration: underline; }
-    .entry-item .entry-image {
-      max-width: 100%;
-      max-height: 200px;
-      object-fit: cover;
-      border-radius: 4px;
-      margin-top: 4px;
-    }
-    .entry-item .entry-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
+    .entry-item .entry-image { max-width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; margin-top: 4px; }
+    .entry-item .entry-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 
-    .flex-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .flex-row input {
-      flex: 1;
-      min-width: 120px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-    }
+    .flex-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .flex-row input { flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9rem; outline: none; }
     .flex-row input:focus { border-color: var(--accent); }
 
-    .ip-link {
-      color: var(--accent);
-      text-decoration: none;
-    }
+    .ip-link { color: var(--accent); text-decoration: none; }
     .ip-link:hover { text-decoration: underline; }
 
-    .flash {
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
-    }
-    .flash-success { background: rgba(126, 231, 135, 0.12); border-color: var(--green); color: var(--green); }
-    .flash-error { background: rgba(247, 120, 122, 0.12); border-color: var(--red); color: var(--red); }
+    .flash { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.85rem; border: 1px solid transparent; }
+    .flash-success { background: rgba(126,231,135,0.12); border-color: var(--green); color: var(--green); }
+    .flash-error { background: rgba(247,120,122,0.12); border-color: var(--red); color: var(--red); }
 
-    .footer {
-      margin-top: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      opacity: 0.4;
-      letter-spacing: 0.04em;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
-    }
+    .footer { margin-top: 16px; text-align: center; color: var(--text-muted); font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4; letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px; }
 
     @media (max-width: 600px) {
       .header { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -466,13 +182,10 @@
       if (diff < 86400) { const h = Math.floor(diff / 3600); return h + 'h' + (h > 1 ? 's' : '') + ' ago'; }
       const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
-
     function formatExact(date) {
       return new Date(date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-
     function getStatus(key) { return statuses[key] || null; }
-
     function showFlash(message, type = 'success') {
       flashContainer.innerHTML = `<div class="flash flash-${type}">${message}</div>`;
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
@@ -499,7 +212,7 @@
       return res.json();
     }
 
-    // ─── Fetch functions ─────────────────────────────────────
+    // ─── Fetch functions ────────────────────────────────────
     async function fetchUser() {
       try {
         const data = await apiFetch('/api/me');
@@ -523,7 +236,6 @@
         if (currentUser) renderContent();
       } catch {}
     }
-
     async function fetchEntries() {
       try {
         const data = await apiFetch('/api/entries');
@@ -531,7 +243,6 @@
         if (currentUser) renderContent();
       } catch {}
     }
-
     async function fetchNotes() {
       try {
         const data = await apiFetch('/api/notes');
@@ -539,7 +250,6 @@
         if (currentUser) renderContent();
       } catch {}
     }
-
     async function fetchBlacklist() {
       try {
         const data = await apiFetch('/api/blacklist');
@@ -547,7 +257,6 @@
         if (currentUser) renderContent();
       } catch {}
     }
-
     async function fetchSilenced() {
       try {
         const data = await apiFetch('/api/silence-logs');
@@ -555,7 +264,6 @@
         if (currentUser) renderContent();
       } catch {}
     }
-
     async function fetchReviews() {
       try {
         const data = await apiFetch('/api/reviews');
@@ -572,7 +280,6 @@
         showFlash(`${key} updated to ${display}`);
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function clearStatus(key) {
       try {
         await apiFetch('/api/status', { method: 'DELETE', body: JSON.stringify({ key }) });
@@ -580,7 +287,6 @@
         showFlash(`${key} cleared`);
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function setCustomFromSection() {
       const select = document.getElementById('customCategorySelect');
       const input = document.getElementById('customCategoryValue');
@@ -605,7 +311,6 @@
         input.value = '';
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function deleteNote(id) {
       if (!confirm('Delete this note?')) return;
       try {
@@ -614,7 +319,6 @@
         showFlash('Note deleted');
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function editNote(id, oldContent) {
       const newContent = prompt('Edit note:', oldContent);
       if (newContent === null) return;
@@ -627,37 +331,12 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    // ─── Diary entries ──────────────────────────────────────
-    async function createEntry(data) {
-      try {
-        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
-        await fetchEntries();
-        showFlash('Entry added');
-      } catch (e) { showFlash(e.message, 'error'); }
-    }
-
-    async function updateEntry(id, data) {
-      try {
-        await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-        await fetchEntries();
-        showFlash('Entry updated');
-      } catch (e) { showFlash(e.message, 'error'); }
-    }
-
-    async function deleteEntry(id) {
-      if (!confirm('Delete this entry?')) return;
-      try {
-        await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
-        await fetchEntries();
-        showFlash('Entry deleted');
-      } catch (e) { showFlash(e.message, 'error'); }
-    }
-
+    // ─── Diary operations ──────────────────────────────────
     function openEntryEditor(entry = null) {
       const isEdit = entry !== null;
       const data = entry || { title: '', content: '', link: '', image_url: '', scheduled_at: '' };
       const html = `
-        <div id="entryEditor" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
           <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto;">
             <h2 style="font-family:var(--font-serif); font-weight:400; margin-bottom:16px;">${isEdit ? 'Edit Entry' : 'New Entry'}</h2>
             <input type="text" id="entryTitle" placeholder="Title" value="${escapeHtml(data.title)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
@@ -666,17 +345,17 @@
             <input type="text" id="entryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
             <div style="display:flex; gap:8px; justify-content:flex-end;">
-              <button class="btn" onclick="document.getElementById('entryEditor').remove()">Cancel</button>
+              <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
               <button class="btn btn-accent" onclick="saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
             </div>
           </div>
         </div>
       `;
       const div = document.createElement('div');
+      div.id = 'entryEditor';
       div.innerHTML = html;
-      document.body.appendChild(div.firstElementChild);
+      document.body.appendChild(div);
     }
-
     async function saveEntry(id) {
       const title = document.getElementById('entryTitle').value.trim();
       const content = document.getElementById('entryContent').value.trim();
@@ -690,33 +369,28 @@
       } else {
         await createEntry(data);
       }
-      const editor = document.getElementById('entryEditor');
-      if (editor) editor.remove();
+      document.getElementById('entryEditor').remove();
     }
-
-    // ─── Reviews ────────────────────────────────────────────
-    async function addReview() {
-      const nameInput = document.getElementById('reviewName');
-      const msgInput = document.getElementById('reviewMessage');
-      if (!nameInput || !msgInput) return;
-      const name = nameInput.value.trim();
-      const message = msgInput.value.trim();
-      if (!name || !message) { showFlash('Name and message are required', 'error'); return; }
+    async function createEntry(data) {
       try {
-        await apiFetch('/api/reviews', { method: 'POST', body: JSON.stringify({ name, message }) });
-        await fetchReviews();
-        showFlash('Review added');
-        nameInput.value = '';
-        msgInput.value = '';
+        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
+        await fetchEntries();
+        showFlash('Entry added');
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
-    async function deleteReview(id) {
-      if (!confirm('Delete this review?')) return;
+    async function updateEntry(id, data) {
       try {
-        await apiFetch(`/api/reviews/${id}`, { method: 'DELETE' });
-        await fetchReviews();
-        showFlash('Review deleted');
+        await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        await fetchEntries();
+        showFlash('Entry updated');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+    async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      try {
+        await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
+        await fetchEntries();
+        showFlash('Entry deleted');
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
@@ -736,7 +410,6 @@
         if (reasonInput) reasonInput.value = '';
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function removeBlacklist(ip) {
       if (!confirm(`Remove ${ip} from blacklist?`)) return;
       try {
@@ -761,13 +434,37 @@
         targetInput.value = '';
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function removeSilence(id) {
       if (!confirm('Remove silence rule?')) return;
       try {
         await apiFetch(`/api/silence-logs/${id}`, { method: 'DELETE' });
         await fetchSilenced();
         showFlash('Silence rule removed');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Reviews ──────────────────────────────────────────
+    async function addReview() {
+      const nameInput = document.getElementById('reviewName');
+      const msgInput = document.getElementById('reviewMessage');
+      if (!nameInput || !msgInput) return;
+      const name = nameInput.value.trim();
+      const message = msgInput.value.trim();
+      if (!name || !message) { showFlash('Name and message are required', 'error'); return; }
+      try {
+        await apiFetch('/api/reviews', { method: 'POST', body: JSON.stringify({ name, message }) });
+        await fetchReviews();
+        showFlash('Review added');
+        nameInput.value = '';
+        msgInput.value = '';
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+    async function deleteReview(id) {
+      if (!confirm('Delete this review?')) return;
+      try {
+        await apiFetch(`/api/reviews/${id}`, { method: 'DELETE' });
+        await fetchReviews();
+        showFlash('Review deleted');
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
@@ -781,7 +478,6 @@
         showFlash('Logged out');
       } catch (e) { showFlash(e.message, 'error'); }
     }
-
     async function passwordLogin() {
       const input = document.getElementById('passwordInput');
       if (!input) return;
@@ -810,9 +506,7 @@
             const err = await res.json();
             errMsg = err.error || errMsg;
           } catch {
-            if (res.status === 500) {
-              errMsg = 'Server error. ADMIN_PASSWORD may not be set.';
-            }
+            if (res.status === 500) errMsg = 'Server error. ADMIN_PASSWORD may not be set.';
           }
           throw new Error(errMsg);
         }
@@ -906,7 +600,7 @@
         </div>
       `;
 
-      // ─── Custom Status Section ────────────────────────────
+      // ─── Custom Status ────────────────────────────────────
       const customSection = `
         <div class="card">
           <h2>✏️ Custom Status</h2>
@@ -931,22 +625,17 @@
         </div>
       `;
 
-      // ─── Notes (sticky container) ─────────────────────────
-      let notesHtml = '';
-      if (notes.length === 0) {
-        notesHtml = `<div class="empty-notes">No notes yet.</div>`;
-      } else {
-        notesHtml = notes.map(n => `
-          <div class="note-entry">
-            <span class="note-content">${escapeHtml(n.content)}</span>
-            <span class="note-time">${formatTimeAgo(n.created_at)}</span>
-            <span class="note-actions">
-              <button class="edit-btn" onclick="editNote(${n.id}, '${escapeHtml(n.content)}')">✎</button>
-              <button class="delete-btn" onclick="deleteNote(${n.id})">✕</button>
-            </span>
-          </div>
-        `).join('');
-      }
+      // ─── Notes as sticky notes container ──────────────────
+      const notesHtml = notes.length ? notes.map(n => `
+        <div class="note-entry">
+          <span class="note-content">${escapeHtml(n.content)}</span>
+          <span class="note-time">${formatTimeAgo(n.created_at)}</span>
+          <span class="note-actions">
+            <button class="edit-btn" onclick="editNote(${n.id}, '${escapeHtml(n.content)}')">✎</button>
+            <button class="delete-btn" onclick="deleteNote(${n.id})">✕</button>
+          </span>
+        </div>
+      `).join('') : `<div class="empty-notes">No notes yet.</div>`;
 
       const notesSection = `
         <div class="card">
@@ -990,7 +679,7 @@
         </div>
       `;
 
-      // ─── Reviews ───────────────────────────────────────────
+      // ─── Reviews ──────────────────────────────────────────
       const reviewsList = reviews.length ? reviews.map(r => `
         <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
           <div>
@@ -1006,13 +695,13 @@
 
       const reviewsSection = `
         <div class="card">
-          <h2>⭐ Reviews / Compliments / Messages</h2>
+          <h2>⭐ Reviews / Messages</h2>
           <div class="flex-row">
             <input type="text" id="reviewName" placeholder="Name" />
             <input type="text" id="reviewMessage" placeholder="Message" />
-            <button class="btn btn-accent" onclick="addReview()">Add Review</button>
+            <button class="btn btn-accent" onclick="addReview()">Add</button>
           </div>
-          <div style="margin-top:12px;">${reviewsList}</div>
+          ${reviewsList}
         </div>
       `;
 
@@ -1038,7 +727,7 @@
             <input type="text" id="blacklistReason" placeholder="Reason (optional)" />
             <button class="btn btn-danger" onclick="addBlacklist()">Block</button>
           </div>
-          <div style="margin-top:12px;">${blacklistItems}</div>
+          ${blacklistItems}
         </div>
       `;
 
@@ -1064,7 +753,7 @@
             </select>
             <button class="btn btn-accent" onclick="addSilence()">Add</button>
           </div>
-          <div style="margin-top:12px;">${silencedItems}</div>
+          ${silencedItems}
         </div>
       `;
 
@@ -1082,12 +771,10 @@
     function renderStatusItem(key, icon, data, options) {
       const display = data ? data.display || data.value : null;
       const meta = data ? `${formatTimeAgo(data.timestamp)}` : 'not logged';
-
       const optionsHtml = options.map(opt => {
         const active = display === opt.label || (data && data.value === opt.value);
         return `<button class="${active ? 'active' : ''}" onclick="setStatus('${key}','${opt.value}','${opt.label}')">${opt.label}</button>`;
       }).join('');
-
       return `
         <div class="status-item">
           <div class="label">${icon} ${key}</div>
