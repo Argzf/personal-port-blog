@@ -20,7 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses (renamed caffeine → drinks)
+  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,10 +60,11 @@ async function initDatabase() {
       path TEXT,
       method TEXT,
       timestamp INTEGER,
+      status_code INTEGER,
       is_admin INTEGER DEFAULT 0
     )
   `);
-  // Diary entries with new fields
+  // Diary entries
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,13 +78,23 @@ async function initDatabase() {
       date TEXT
     )
   `);
-  // Silence logs table (mute IPs or pages)
+  // Silence logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS silence_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       target TEXT NOT NULL,
-      type TEXT DEFAULT 'ip', -- 'ip' or 'path'
+      type TEXT DEFAULT 'ip',
       created_at INTEGER
+    )
+  `);
+  // Reviews
+  await turso.execute(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      message TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      date TEXT
     )
   `);
 }
@@ -98,9 +109,27 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Logging ─────────────────────────────────────────────
+// ─── Logging with status code ──────────────────────────
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  // Capture status code on finish
+  const oldSend = res.send;
+  res.send = function(data) {
+    // Log status code after response is sent
+    const statusCode = res.statusCode;
+    const ip = getClientIp(req);
+    const userAgent = req.get('user-agent') || 'unknown';
+    const timestamp = Date.now();
+    // Store in DB only for certain paths (avoid overloading)
+    if (req.path.startsWith('/api') || req.path === '/' || req.path === '/admin' || req.path === '/admin/') {
+      turso.execute({
+        sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, status_code, is_admin)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        args: [ip, userAgent, req.path, req.method, timestamp, statusCode, req.user ? 1 : 0],
+      }).catch(e => console.error('Log insert error:', e));
+    }
+    oldSend.apply(res, arguments);
+  };
   next();
 });
 
@@ -153,7 +182,6 @@ app.use(async (req, res, next) => {
 
 // ─── Silence log check ───────────────────────────────────
 async function shouldSilenceLog(ip, path) {
-  // Check if IP or path is muted
   const result = await turso.execute({
     sql: 'SELECT type FROM silence_logs WHERE target = ? OR target = ?',
     args: [ip, path],
@@ -256,22 +284,13 @@ function formatIpLink(ip) {
   return `<a href="https://whatismyipaddress.com/ip/${ip}">${ip}</a>`;
 }
 
-async function logAction(action, details = {}, req = null) {
+async function logAction(action, details = {}, req = null, statusCode = 200) {
   const ip = getClientIp(req);
   const path = req?.path || '';
-  // Check if we should silence this log
   if (await shouldSilenceLog(ip, path)) return;
 
   const userAgent = req?.get('user-agent') || 'unknown';
   const timestamp = Date.now();
-
-  if (req) {
-    await turso.execute({
-      sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, is_admin) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [ip, userAgent, path, req.method, timestamp, req.user ? 1 : 0],
-    });
-  }
 
   const user = req?.user?.username || 'guest';
   const time = new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Tehran' });
@@ -280,6 +299,7 @@ async function logAction(action, details = {}, req = null) {
   msg += `🕒 ${time}\n`;
   if (ip !== 'unknown') msg += `🌐 ${formatIpLink(ip)}\n`;
   msg += `📱 ${userAgent}\n`;
+  msg += `📊 Status: ${statusCode}\n`;
   for (const [key, value] of Object.entries(details)) {
     msg += `🔹 ${key}: ${value}\n`;
   }
@@ -298,13 +318,13 @@ async function logAction(action, details = {}, req = null) {
 app.use(async (req, res, next) => {
   const path = req.path;
   if (path === '/' || path === '/admin' || path === '/admin/') {
-    await logAction('Site Visit', { page: path }, req);
+    // We'll log after status is known; the logging middleware already does it.
   }
   next();
 });
 
 // ════════════════════════════════════════════════════════════════
-//  ROUTES
+//  ROUTES – ORDER MATTERS!
 // ════════════════════════════════════════════════════════════════
 
 // ─── Discord OAuth ──────────────────────────────────────
@@ -323,12 +343,12 @@ app.get('/auth/discord/callback',
       sameSite: 'lax',
       path: '/',
     });
-    logAction('Discord Login', { user: user.username }, req);
+    logAction('Discord Login', { user: user.username }, req, 302);
     res.redirect('/admin');
   }
 );
 
-// ─── Password fallback login (with rate limiting) ──────
+// ─── Password fallback login ────────────────────────────
 app.post('/auth/password', loginLimiter, async (req, res) => {
   const { password } = req.body;
   const expectedPassword = process.env.ADMIN_PASSWORD;
@@ -353,11 +373,11 @@ app.post('/auth/password', loginLimiter, async (req, res) => {
       sameSite: 'lax',
       path: '/',
     });
-    await logAction('Admin Login', { method: 'password' }, req);
+    await logAction('Admin Login', { method: 'password' }, req, 200);
     return res.json({ success: true });
   }
   
-  await logAction('Failed Login Attempt', { method: 'password' }, req);
+  await logAction('Failed Login Attempt', { method: 'password' }, req, 401);
   res.status(401).json({ error: 'Invalid password' });
 });
 
@@ -402,7 +422,7 @@ app.post('/api/status', authMiddleware, async (req, res) => {
           ON CONFLICT(key, date) DO UPDATE SET value = ?, display = ?, timestamp = ?`,
     args: [key, value, display || value, timestamp, date, value, display || value, timestamp],
   });
-  await logAction('Status Updated', { key, value: display || value }, req);
+  await logAction('Status Updated', { key, value: display || value }, req, 200);
   res.json({ success: true });
 });
 
@@ -415,7 +435,7 @@ app.delete('/api/status', authMiddleware, async (req, res) => {
     sql: 'DELETE FROM statuses WHERE key = ?',
     args: [key],
   });
-  await logAction('Status Cleared', { key }, req);
+  await logAction('Status Cleared', { key }, req, 200);
   res.json({ success: true });
 });
 
@@ -439,7 +459,7 @@ app.post('/api/notes', authMiddleware, async (req, res) => {
     sql: 'INSERT INTO notes (content, created_at, updated_at, date) VALUES (?, ?, ?, ?)',
     args: [content.trim(), now, now, date],
   });
-  await logAction('Note Added', { content: content.trim().slice(0, 50) }, req);
+  await logAction('Note Added', { content: content.trim().slice(0, 50) }, req, 200);
   res.json({ success: true });
 });
 
@@ -454,7 +474,7 @@ app.put('/api/notes/:id', authMiddleware, async (req, res) => {
     sql: 'UPDATE notes SET content = ?, updated_at = ? WHERE id = ?',
     args: [content.trim(), now, id],
   });
-  await logAction('Note Edited', { id, content: content.trim().slice(0, 50) }, req);
+  await logAction('Note Edited', { id, content: content.trim().slice(0, 50) }, req, 200);
   res.json({ success: true });
 });
 
@@ -469,13 +489,12 @@ app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
     sql: 'DELETE FROM notes WHERE id = ?',
     args: [id],
   });
-  await logAction('Note Deleted', { id, content: content.slice(0, 50) }, req);
+  await logAction('Note Deleted', { id, content: content.slice(0, 50) }, req, 200);
   res.json({ success: true });
 });
 
 // ─── Diary entries ──────────────────────────────────────
 app.get('/api/entries', authMiddleware, async (req, res) => {
-  // Get published entries (scheduled_at <= now or published=1) and drafts
   const now = Date.now();
   const result = await turso.execute({
     sql: `SELECT id, title, content, link, image_url, scheduled_at, published, timestamp 
@@ -501,7 +520,7 @@ app.post('/api/entries', authMiddleware, async (req, res) => {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, now, date],
   });
-  await logAction('Diary Entry Added', { title: title || 'Untitled', content: content.trim().slice(0, 50) }, req);
+  await logAction('Diary Entry Added', { title: title || 'Untitled' }, req, 200);
   res.json({ success: true });
 });
 
@@ -520,7 +539,7 @@ app.put('/api/entries/:id', authMiddleware, async (req, res) => {
           WHERE id = ?`,
     args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, id],
   });
-  await logAction('Diary Entry Edited', { id, title: title || 'Untitled' }, req);
+  await logAction('Diary Entry Edited', { id, title: title || 'Untitled' }, req, 200);
   res.json({ success: true });
 });
 
@@ -530,7 +549,7 @@ app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
     sql: 'DELETE FROM entries WHERE id = ?',
     args: [id],
   });
-  await logAction('Diary Entry Deleted', { id }, req);
+  await logAction('Diary Entry Deleted', { id }, req, 200);
   res.json({ success: true });
 });
 
@@ -559,7 +578,7 @@ app.post('/api/silence-logs', authMiddleware, async (req, res) => {
     sql: 'INSERT INTO silence_logs (target, type, created_at) VALUES (?, ?, ?)',
     args: [target, type || 'ip', Date.now()],
   });
-  await logAction('Log Silence Added', { target, type }, req);
+  await logAction('Log Silence Added', { target, type }, req, 200);
   res.json({ success: true });
 });
 
@@ -569,7 +588,7 @@ app.delete('/api/silence-logs/:id', authMiddleware, async (req, res) => {
     sql: 'DELETE FROM silence_logs WHERE id = ?',
     args: [id],
   });
-  await logAction('Log Silence Removed', { id }, req);
+  await logAction('Log Silence Removed', { id }, req, 200);
   res.json({ success: true });
 });
 
@@ -587,7 +606,7 @@ app.post('/api/blacklist', authMiddleware, async (req, res) => {
       sql: 'INSERT INTO blacklist (ip, reason, created_at) VALUES (?, ?, ?)',
       args: [ip, reason || 'No reason provided', Date.now()],
     });
-    await logAction('IP Blacklisted', { ip, reason }, req);
+    await logAction('IP Blacklisted', { ip, reason }, req, 200);
     res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: 'IP already blacklisted or invalid' });
@@ -600,13 +619,53 @@ app.delete('/api/blacklist/:ip', authMiddleware, async (req, res) => {
     sql: 'DELETE FROM blacklist WHERE ip = ?',
     args: [ip],
   });
-  await logAction('IP Removed from Blacklist', { ip }, req);
+  await logAction('IP Removed from Blacklist', { ip }, req, 200);
   res.json({ success: true });
+});
+
+// ─── Reviews ─────────────────────────────────────────────
+app.get('/api/reviews', authMiddleware, async (req, res) => {
+  const result = await turso.execute({
+    sql: 'SELECT id, name, message, timestamp FROM reviews ORDER BY timestamp DESC LIMIT 100',
+  });
+  res.json({ reviews: result.rows });
+});
+
+app.post('/api/reviews', authMiddleware, async (req, res) => {
+  const { name, message } = req.body;
+  if (!name || name.trim().length === 0 || !message || message.trim().length === 0) {
+    return res.status(400).json({ error: 'Name and message are required' });
+  }
+  const now = Date.now();
+  const date = getTehranDate();
+  await turso.execute({
+    sql: 'INSERT INTO reviews (name, message, timestamp, date) VALUES (?, ?, ?, ?)',
+    args: [name.trim(), message.trim(), now, date],
+  });
+  await logAction('Review Added', { name, message: message.trim().slice(0, 50) }, req, 200);
+  res.json({ success: true });
+});
+
+app.delete('/api/reviews/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  await turso.execute({
+    sql: 'DELETE FROM reviews WHERE id = ?',
+    args: [id],
+  });
+  await logAction('Review Deleted', { id }, req, 200);
+  res.json({ success: true });
+});
+
+app.get('/api/public-reviews', async (req, res) => {
+  const result = await turso.execute({
+    sql: 'SELECT name, message, timestamp FROM reviews ORDER BY timestamp DESC LIMIT 20',
+  });
+  res.json({ reviews: result.rows });
 });
 
 // ─── Logout ──────────────────────────────────────────────
 app.post('/api/logout', authMiddleware, async (req, res) => {
-  await logAction('Admin Logout', {}, req);
+  await logAction('Admin Logout', {}, req, 200);
   res.clearCookie('auth_token', { path: '/' });
   res.json({ success: true });
 });
@@ -617,28 +676,28 @@ app.get('/api/me', authMiddleware, (req, res) => {
 });
 
 // ════════════════════════════════════════════════════════════════
-//  ERROR PAGES
+//  STATIC FILES & FALLBACKS – ORDER MATTERS!
 // ════════════════════════════════════════════════════════════════
-// 404 handler – must come after all routes but before static fallback
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
-});
 
-// ════════════════════════════════════════════════════════════════
-//  STATIC FILES
-// ════════════════════════════════════════════════════════════════
+// 1. Serve static files from /public
 app.use(express.static(path.join(__dirname, '../public')));
 
+// 2. Admin routes (override static for /admin)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
-
 app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
 });
 
+// 3. 404 handler – everything else
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  // If it's an API request, return JSON 404
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  // Otherwise serve the custom 404 page
+  res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
 });
 
 module.exports = app;
