@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    /* ── full CSS restored ── */
+    /* ── same as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --board-bg: #2C1E16; --board-grid: rgba(60,40,30,0.3);
@@ -90,7 +90,6 @@
       opacity: 0.15; border-radius: 0 0 2px 2px;
     }
 
-    /* ── content ── */
     .board-content { display: flex; flex-direction: column; gap: clamp(18px,3vw,28px); }
 
     /* ── polaroid grid ── */
@@ -201,7 +200,7 @@
     .sticky ul li .dot { color: var(--red-string); font-weight: 700; font-size: 0.6rem; }
     .sticky ul li em { font-style: italic; opacity: 0.7; }
 
-    /* ── diary folder ── */
+    /* ── diary folder (base) ── */
     .diary-folder {
       background: var(--card-bg); border: 1px solid var(--card-border);
       padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
@@ -289,7 +288,12 @@
       animation: fadeIn 0.5s;
     }
     .review-slide.active { display: block; }
-    .review-slide .review-name { font-weight: 600; color: var(--red-string); }
+    .review-slide .review-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--red-string);
+      margin-top: 4px;
+    }
     .review-slide .review-message { font-size: 0.95rem; margin: 4px 0; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -302,6 +306,20 @@
       cursor: pointer; transition: 0.2s;
     }
     .carousel-dots .dot.active { background: var(--red-string); }
+
+    .folder-tags {
+      display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 8px;
+    }
+    .folder-tags span {
+      font-family: var(--font-mono);
+      font-size: clamp(0.5rem,0.9vw,0.6rem);
+      letter-spacing: 0.04em;
+      background: var(--tag-bg);
+      border: 1px solid var(--card-border);
+      padding: 1px 12px;
+      border-radius: 2px;
+      color: var(--ink-light);
+    }
 
     /* ── footer ── */
     .footer {
@@ -356,93 +374,9 @@
       <div class="red-string-decoration"></div>
     </div>
 
-    <!-- ─── CONTENT ─── -->
-    <div class="board-content">
-      <!-- STATUS POLAROIDS -->
-      <div style="position:relative;">
-        <div style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
-          ══ observation log ══
-        </div>
-        <div class="polaroid-grid" id="statusGrid">
-          <svg class="red-string-svg" id="redStringSvg" preserveAspectRatio="none">
-            <path id="stringPath" d="" />
-            <circle id="dotA" cx="0" cy="0" r="0" />
-            <circle id="dotB" cx="0" cy="0" r="0" />
-            <circle id="dotC" cx="0" cy="0" r="0" />
-          </svg>
-          <div class="polaroid" style="--rot:-1.5deg;" id="drinksItem">
-            <span class="photo-icon">🍹</span>
-            <div class="label">drinks</div>
-            <div class="value" id="drinksDisplay">—</div>
-            <div class="meta" id="drinksMeta">not logged</div>
-            <span class="evidence-tag">EXHIBIT A</span>
-          </div>
-          <div class="polaroid" style="--rot:2deg;" id="activityItem">
-            <span class="photo-icon">👤</span>
-            <div class="label">activity</div>
-            <div class="value" id="activityDisplay">—</div>
-            <div class="meta" id="activityMeta">not logged</div>
-            <span class="evidence-tag">EXHIBIT B</span>
-          </div>
-          <div class="polaroid" style="--rot:-0.8deg;" id="moodItem">
-            <span class="photo-icon">🎭</span>
-            <div class="label">mood</div>
-            <div class="value" id="moodDisplay">—</div>
-            <div class="meta" id="moodMeta">not logged</div>
-            <span class="evidence-tag">EXHIBIT C</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBJECT PROFILE -->
-      <div class="subject-profile">
-        <span class="stamp">● subject profile</span>
-        <h2>Arsan Gzf <span class="sub">· born 10 May 2012</span></h2>
-        <p class="bio-text">
-          Tries to stay conscious. Thinks in systems and tries to spot flaws. Speaks multiple languages but feels most at home in English. Has lived across multiple countries on different continents.
-        </p>
-        <div class="tags">
-          <span class="tag accent">INTP‑T</span>
-          <span class="tag">TRAVELLER</span>
-          <span class="tag">YAPPER</span>
-          <span class="tag">GOOFY</span>
-          <span class="tag">NERD</span>
-          <span class="tag">FASTIDIOUS</span>
-        </div>
-      </div>
-
-      <!-- REVIEWS CAROUSEL (placed higher) -->
-      <div class="diary-folder" style="margin-top:4px;">
-        <span class="big-icon">⭐</span>
-        <p><strong>Reviews &amp; Messages</strong></p>
-        <div id="reviewsContainer" class="review-carousel">
-          <!-- Rendered by JavaScript -->
-        </div>
-        <div id="reviewDots" class="carousel-dots"></div>
-      </div>
-
-      <!-- NOTES -->
-      <div class="diary-folder" style="margin-top:4px;">
-        <span class="big-icon">📌</span>
-        <p><strong>Notes</strong></p>
-        <div id="notesContainer" class="sticky-note-container">
-          <div class="diary-empty">Loading notes...</div>
-        </div>
-      </div>
-
-      <!-- DIARY ENTRIES -->
-      <div class="diary-folder">
-        <span class="big-icon">📖</span>
-        <p><strong>Diary Entries</strong></p>
-        <div id="diaryEntriesContainer" class="diary-entries">
-          <!-- Rendered by JavaScript -->
-        </div>
-        <div class="folder-tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">reflections</span>
-          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">project logs</span>
-          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">random thoughts</span>
-        </div>
-      </div>
+    <!-- ─── CONTENT CONTAINER ─── -->
+    <div class="board-content" id="homeContent">
+      <!-- The sections will be reordered by JavaScript -->
     </div>
 
     <!-- ─── FOOTER ─── -->
@@ -551,6 +485,144 @@
       return div.innerHTML;
     }
 
+    // ─── Section order (shared with admin) ────────────────
+    let sectionOrder = ['status', 'subject', 'reviews', 'notes', 'diary'];
+    // Load from localStorage if exists
+    const stored = localStorage.getItem('sectionOrder');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Filter only those valid sections
+        const valid = ['status', 'subject', 'reviews', 'notes', 'diary'];
+        const filtered = parsed.filter(id => valid.includes(id));
+        if (filtered.length === valid.length) {
+          sectionOrder = filtered;
+        }
+      } catch {}
+    }
+
+    // ─── Build homepage sections ────────────────────────────
+    function buildStatusSection() {
+      // This will be populated by fetchStatuses later.
+      return `
+        <div style="position:relative;">
+          <div style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
+            ══ observation log ══
+          </div>
+          <div class="polaroid-grid" id="statusGrid">
+            <svg class="red-string-svg" id="redStringSvg" preserveAspectRatio="none">
+              <path id="stringPath" d="" />
+              <circle id="dotA" cx="0" cy="0" r="0" />
+              <circle id="dotB" cx="0" cy="0" r="0" />
+              <circle id="dotC" cx="0" cy="0" r="0" />
+            </svg>
+            <div class="polaroid" style="--rot:-1.5deg;" id="drinksItem">
+              <span class="photo-icon">🍹</span>
+              <div class="label">drinks</div>
+              <div class="value" id="drinksDisplay">—</div>
+              <div class="meta" id="drinksMeta">not logged</div>
+              <span class="evidence-tag">EXHIBIT A</span>
+            </div>
+            <div class="polaroid" style="--rot:2deg;" id="activityItem">
+              <span class="photo-icon">👤</span>
+              <div class="label">activity</div>
+              <div class="value" id="activityDisplay">—</div>
+              <div class="meta" id="activityMeta">not logged</div>
+              <span class="evidence-tag">EXHIBIT B</span>
+            </div>
+            <div class="polaroid" style="--rot:-0.8deg;" id="moodItem">
+              <span class="photo-icon">🎭</span>
+              <div class="label">mood</div>
+              <div class="value" id="moodDisplay">—</div>
+              <div class="meta" id="moodMeta">not logged</div>
+              <span class="evidence-tag">EXHIBIT C</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildSubjectSection() {
+      return `
+        <div class="subject-profile">
+          <span class="stamp">● subject profile</span>
+          <h2>Arsan Gzf <span class="sub">· born 10 May 2012</span></h2>
+          <p class="bio-text">
+            Tries to stay conscious. Thinks in systems and tries to spot flaws. Speaks multiple languages but feels most at home in English. Has lived across multiple countries on different continents.
+          </p>
+          <div class="tags">
+            <span class="tag accent">INTP‑T</span>
+            <span class="tag">TRAVELLER</span>
+            <span class="tag">YAPPER</span>
+            <span class="tag">GOOFY</span>
+            <span class="tag">NERD</span>
+            <span class="tag">FASTIDIOUS</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildReviewsSection() {
+      return `
+        <div class="diary-folder" style="margin-top:4px;">
+          <span class="big-icon">⭐</span>
+          <p><strong>Reviews &amp; Messages</strong></p>
+          <div id="reviewsContainer" class="review-carousel">
+            <!-- Rendered by JavaScript -->
+          </div>
+          <div id="reviewDots" class="carousel-dots"></div>
+        </div>
+      `;
+    }
+
+    function buildNotesSection() {
+      return `
+        <div class="diary-folder" style="margin-top:4px;">
+          <span class="big-icon">📌</span>
+          <p><strong>Notes</strong></p>
+          <div id="notesContainer" class="sticky-note-container">
+            <div class="diary-empty">Loading notes...</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildDiarySection() {
+      return `
+        <div class="diary-folder">
+          <span class="big-icon">📖</span>
+          <p><strong>Diary Entries</strong></p>
+          <div id="diaryEntriesContainer" class="diary-entries">
+            <!-- Rendered by JavaScript -->
+          </div>
+          <div class="folder-tags">
+            <span>reflections</span>
+            <span>project logs</span>
+            <span>random thoughts</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // ─── Render homepage with current order ────────────────
+    function renderHome() {
+      const container = document.getElementById('homeContent');
+      const sections = {
+        'status': buildStatusSection(),
+        'subject': buildSubjectSection(),
+        'reviews': buildReviewsSection(),
+        'notes': buildNotesSection(),
+        'diary': buildDiarySection(),
+      };
+      let html = '';
+      for (const id of sectionOrder) {
+        if (sections[id]) {
+          html += sections[id];
+        }
+      }
+      container.innerHTML = html;
+    }
+
     // ─── Carousel ────────────────────────────────────────────
     let reviewCarouselIndex = 0;
     let reviewCarouselTimer = null;
@@ -566,11 +638,10 @@
         return;
       }
 
-      // Build slides – no timestamp
       container.innerHTML = reviews.map((r, i) => `
         <div class="review-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
-          <div class="review-name">${escapeHtml(r.name)}</div>
           <div class="review-message">${escapeHtml(r.message)}</div>
+          <div class="review-name">— ${escapeHtml(r.name)}</div>
         </div>
       `).join('');
 
@@ -585,7 +656,7 @@
           const total = reviews.length;
           const next = (reviewCarouselIndex + 1) % total;
           goToReview(next);
-        }, 4000); // faster: 4 seconds
+        }, 4000);
       }
     }
 
@@ -610,9 +681,9 @@
         ['drinks','activity','mood'].forEach(key => {
           const el = document.getElementById(key + 'Display');
           const meta = document.getElementById(key + 'Meta');
-          const data = statuses[key];
-          if (el) el.textContent = data ? (data.display || data.value) : '—';
-          if (meta) meta.textContent = data ? formatTimeAgo(data.timestamp) : 'not logged';
+          const d = statuses[key];
+          if (el) el.textContent = d ? (d.display || d.value) : '—';
+          if (meta) meta.textContent = d ? formatTimeAgo(d.timestamp) : 'not logged';
         });
         updateCaseAge();
       } catch (e) { console.warn('Status fetch error:', e); }
@@ -737,10 +808,15 @@
 
     // ─── Init ────────────────────────────────────────────────
     async function init() {
+      // Build the page with sections ordered
+      renderHome();
+
+      // Now fetch data
       await Promise.all([fetchStatuses(), fetchNotes(), fetchDiaryEntries(), fetchReviews()]);
       updateCaseAge();
       setTimeout(updateRedString, 100);
 
+      // Set up intervals
       setInterval(async () => {
         await fetchStatuses();
         updateRedString();
@@ -749,6 +825,7 @@
       setInterval(fetchDiaryEntries, 30000);
       setInterval(fetchReviews, 30000);
 
+      // Resize handler for red string
       let resizeTimer;
       function handleResize() {
         clearTimeout(resizeTimer);
@@ -763,15 +840,40 @@
       }
       setInterval(updateRedString, 2000);
 
+      // Hide quote button when clicking elsewhere
       document.addEventListener('click', (e) => {
         if (!e.target.closest('#quoteButton')) {
           document.getElementById('quoteButton').style.display = 'none';
         }
       });
+
+      // Listen for storage changes to reorder sections if admin changes order
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'sectionOrder') {
+          try {
+            const newOrder = JSON.parse(e.newValue);
+            const valid = ['status', 'subject', 'reviews', 'notes', 'diary'];
+            const filtered = newOrder.filter(id => valid.includes(id));
+            if (filtered.length === valid.length) {
+              sectionOrder = filtered;
+              // Re-render the page without losing data
+              // We'll just rebuild the layout – data will be re-fetched by intervals.
+              // But to be safe, we can re-render and re-fetch.
+              renderHome();
+              // Re-fetch data for the new sections
+              fetchNotes();
+              fetchDiaryEntries();
+              fetchReviews();
+              // Status grid is already present, but we need to re-bind the red string.
+              setTimeout(updateRedString, 100);
+            }
+          } catch {}
+        }
+      });
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · connected to API with share, quote, carousel');
+    console.log('🕵️ Arsan\'s Archive · connected to API with share, quote, carousel, reorderable');
   </script>
 </body>
 </html>
