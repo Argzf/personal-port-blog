@@ -82,26 +82,6 @@
       gap: 14px;
     }
 
-    .header .user-area .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--surface-2);
-      border: 2px solid var(--border);
-      overflow: hidden;
-    }
-
-    .header .user-area .avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .header .user-area .username {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
     /* ── buttons ── */
     .btn {
       background: var(--surface-2);
@@ -162,6 +142,20 @@
       width: 100%;
       text-align: center;
     }
+
+    .btn-sm {
+      font-size: 0.6rem;
+      padding: 2px 12px;
+      line-height: 1.6;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: var(--font);
+    }
+    .btn-sm:hover { background: var(--border); border-color: var(--accent-dim); }
 
     /* ── cards ── */
     .card {
@@ -323,6 +317,7 @@
     .status-item .actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 4px;
     }
 
@@ -352,36 +347,6 @@
       color: var(--bg);
     }
 
-    .status-item .actions button.active-tea {
-      background: #b88a5e;
-      border-color: #b88a5e;
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-coffee {
-      background: #6f4e37;
-      border-color: #6f4e37;
-      color: #F7F5F2;
-    }
-
-    .status-item .actions button.active-healthy {
-      background: var(--green);
-      border-color: var(--green);
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-sick {
-      background: var(--red);
-      border-color: var(--red);
-      color: var(--bg);
-    }
-
-    .status-item .actions button.active-mood {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
-
     .status-item .clear-btn {
       background: transparent;
       border: none;
@@ -399,6 +364,153 @@
       opacity: 0.8;
     }
 
+    /* ── custom input in status ── */
+    .status-item .custom-input {
+      display: flex;
+      gap: 4px;
+      margin-left: 4px;
+    }
+    .status-item .custom-input input {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 1px 10px;
+      font-size: 0.6rem;
+      color: var(--text);
+      font-family: var(--font);
+      width: 80px;
+      outline: none;
+      height: 22px;
+    }
+    .status-item .custom-input input:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── notes, diary, blacklist ── */
+    .entry-form textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: var(--font);
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+    }
+    .entry-form textarea:focus {
+      border-color: var(--accent);
+    }
+    .entry-form .submit-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .entry-list, .notes-list, .blacklist-list {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .entry-item, .note-item, .blacklist-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .entry-item .content, .note-item .content, .blacklist-item .content {
+      flex: 1;
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+    .entry-item .timestamp, .note-item .timestamp, .blacklist-item .timestamp {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      opacity: 0.6;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .entry-item .delete-btn, .blacklist-item .delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--red);
+      font-size: 0.7rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .entry-item .delete-btn:hover, .blacklist-item .delete-btn:hover {
+      opacity: 1;
+    }
+    .note-item .edit-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 0.7rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      font-family: var(--font);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .note-item .edit-btn:hover {
+      opacity: 1;
+    }
+    .note-item .note-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .empty-entries, .empty-notes, .empty-blacklist {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      opacity: 0.6;
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .flex-row input {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .flex-row input:focus {
+      border-color: var(--accent);
+    }
+
+    .ip-link {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .ip-link:hover {
+      text-decoration: underline;
+    }
+
     /* ── flash ── */
     .flash {
       padding: 10px 16px;
@@ -407,13 +519,11 @@
       font-size: 0.85rem;
       border: 1px solid transparent;
     }
-
     .flash-success {
       background: rgba(126, 231, 135, 0.12);
       border-color: var(--green);
       color: var(--green);
     }
-
     .flash-error {
       background: rgba(247, 120, 122, 0.12);
       border-color: var(--red);
@@ -453,6 +563,12 @@
       .login-card {
         padding: 32px 16px;
       }
+      .flex-row {
+        flex-direction: column;
+      }
+      .flex-row input {
+        min-width: unset;
+      }
     }
   </style>
 </head>
@@ -471,6 +587,9 @@
     // ─── STATE ──────────────────────────────────────────────
     let currentUser = null;
     let statuses = { caffeine: null, activity: null, mood: null };
+    let entries = [];
+    let notes = [];
+    let blacklist = [];
 
     // ─── DOM REFS ───────────────────────────────────────────
     const userArea = document.getElementById('userArea');
@@ -497,12 +616,20 @@
       setTimeout(() => { flashContainer.innerHTML = ''; }, 4000);
     }
 
+    // ─── Cache‑busting helper ─────────────────────────────
+    function getUrl(endpoint) {
+      const sep = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${sep}_=${Date.now()}`;
+    }
+
     // ─── API CALLS ──────────────────────────────────────────
     async function apiFetch(endpoint, options = {}) {
-      const res = await fetch(endpoint, {
+      const url = getUrl(endpoint);
+      const res = await fetch(url, {
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
         credentials: 'include',
+        cache: 'no-store',
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -511,11 +638,15 @@
       return res.json();
     }
 
+    // ─── Fetch all data ─────────────────────────────────────
     async function fetchUser() {
       try {
         const data = await apiFetch('/api/me');
         currentUser = data.user;
         renderHeader();
+        if (currentUser) {
+          await Promise.all([fetchStatuses(), fetchEntries(), fetchNotes(), fetchBlacklist()]);
+        }
         renderContent();
       } catch {
         currentUser = null;
@@ -528,10 +659,35 @@
       try {
         const data = await apiFetch('/api/statuses');
         statuses = data.statuses || { caffeine: null, activity: null, mood: null };
-        renderContent();
+        if (currentUser) renderContent();
       } catch {}
     }
 
+    async function fetchEntries() {
+      try {
+        const data = await apiFetch('/api/entries');
+        entries = data.entries || [];
+        if (currentUser) renderContent();
+      } catch {}
+    }
+
+    async function fetchNotes() {
+      try {
+        const data = await apiFetch('/api/notes');
+        notes = data.notes || [];
+        if (currentUser) renderContent();
+      } catch {}
+    }
+
+    async function fetchBlacklist() {
+      try {
+        const data = await apiFetch('/api/blacklist');
+        blacklist = data.blacklist || [];
+        if (currentUser) renderContent();
+      } catch {}
+    }
+
+    // ─── Status operations ──────────────────────────────────
     async function setStatus(key, value, display) {
       try {
         await apiFetch('/api/status', { method: 'POST', body: JSON.stringify({ key, value, display }) });
@@ -548,6 +704,94 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
+    async function setCustomStatus(key) {
+      const input = document.getElementById(`custom-${key}`);
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) { showFlash('Please enter a value', 'error'); return; }
+      await setStatus(key, val, val);
+      input.value = '';
+    }
+
+    // ─── Notes operations ───────────────────────────────────
+    async function addNote() {
+      const input = document.getElementById('noteInput');
+      if (!input) return;
+      const content = input.value.trim();
+      if (!content) { showFlash('Please enter content', 'error'); return; }
+      try {
+        await apiFetch('/api/notes', { method: 'POST', body: JSON.stringify({ content }) });
+        await fetchNotes();
+        showFlash('Note added');
+        input.value = '';
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function deleteNote(id) {
+      if (!confirm('Delete this note?')) return;
+      try {
+        await apiFetch(`/api/notes/${id}`, { method: 'DELETE' });
+        await fetchNotes();
+        showFlash('Note deleted');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function editNote(id, oldContent) {
+      const newContent = prompt('Edit note:', oldContent);
+      if (newContent === null) return;
+      const trimmed = newContent.trim();
+      if (!trimmed) { showFlash('Content cannot be empty', 'error'); return; }
+      try {
+        await apiFetch(`/api/notes/${id}`, { method: 'PUT', body: JSON.stringify({ content: trimmed }) });
+        await fetchNotes();
+        showFlash('Note updated');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Diary entries ──────────────────────────────────────
+    async function createEntry(content) {
+      try {
+        await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify({ content }) });
+        await fetchEntries();
+        showFlash('Entry added');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function deleteEntry(id) {
+      try {
+        await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
+        await fetchEntries();
+        showFlash('Entry deleted');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Blacklist operations ──────────────────────────────
+    async function addBlacklist() {
+      const ipInput = document.getElementById('blacklistIp');
+      const reasonInput = document.getElementById('blacklistReason');
+      if (!ipInput) return;
+      const ip = ipInput.value.trim();
+      const reason = reasonInput?.value.trim() || '';
+      if (!ip) { showFlash('Please enter an IP', 'error'); return; }
+      try {
+        await apiFetch('/api/blacklist', { method: 'POST', body: JSON.stringify({ ip, reason }) });
+        await fetchBlacklist();
+        showFlash('IP blacklisted');
+        ipInput.value = '';
+        if (reasonInput) reasonInput.value = '';
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    async function removeBlacklist(ip) {
+      if (!confirm(`Remove ${ip} from blacklist?`)) return;
+      try {
+        await apiFetch(`/api/blacklist/${ip}`, { method: 'DELETE' });
+        await fetchBlacklist();
+        showFlash('IP removed');
+      } catch (e) { showFlash(e.message, 'error'); }
+    }
+
+    // ─── Authentication ─────────────────────────────────────
     async function logout() {
       try {
         await apiFetch('/api/logout', { method: 'POST' });
@@ -558,26 +802,24 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    // ─── PASSWORD LOGIN ─────────────────────────────────────
     async function passwordLogin() {
       const input = document.getElementById('passwordInput');
       if (!input) return;
       const password = input.value.trim();
-      if (!password) { 
-        showFlash('Please enter a password', 'error'); 
-        return; 
-      }
+      if (!password) { showFlash('Please enter a password', 'error'); return; }
 
       const btn = document.querySelector('.login-form .btn-accent');
       const originalText = btn?.textContent || 'Login with Password';
       if (btn) btn.textContent = 'Logging in...';
 
       try {
-        const res = await fetch('/auth/password', {
+        const url = getUrl('/auth/password');
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
           credentials: 'include',
+          cache: 'no-store',
         });
 
         if (btn) btn.textContent = originalText;
@@ -597,9 +839,8 @@
 
         const data = await res.json();
         if (data.success) {
-          await fetchUser();
-          showFlash('Logged in successfully');
-          input.value = '';
+          showFlash('Logged in successfully, redirecting...');
+          window.location.href = '/admin';
         } else {
           throw new Error(data.error || 'Login failed');
         }
@@ -610,15 +851,13 @@
     }
 
     // ─── RENDER ─────────────────────────────────────────────
-function renderHeader() {
-  if (currentUser) {
-    userArea.innerHTML = `
-      <button class="btn btn-danger" onclick="logout()">Logout</button>
-    `;
-  } else {
-    userArea.innerHTML = '';
-  }
-}
+    function renderHeader() {
+      if (currentUser) {
+        userArea.innerHTML = `<button class="btn btn-danger" onclick="logout()">Logout</button>`;
+      } else {
+        userArea.innerHTML = '';
+      }
+    }
 
     function renderContent() {
       if (!currentUser) {
@@ -645,11 +884,12 @@ function renderHeader() {
         return;
       }
 
+      // ─── Statuses ──────────────────────────────────────────
       const caffeine = getStatus('caffeine');
       const activity = getStatus('activity');
       const mood = getStatus('mood');
 
-      mainContent.innerHTML = `
+      const statusCards = `
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
           <div class="status-grid">
@@ -686,15 +926,91 @@ function renderHeader() {
             ])}
           </div>
         </div>
-        <div class="card" style="border-color:var(--border); opacity:0.7;">
-          <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses reset automatically at midnight (Tehran time).</p>
+      `;
+
+      // ─── Notes ────────────────────────────────────────────
+      const notesList = notes.length ? notes.map(n => `
+        <div class="note-item">
+          <div class="content">${escapeHtml(n.content)}</div>
+          <div class="timestamp">${formatTimeAgo(n.created_at)}</div>
+          <div class="note-actions">
+            <button class="edit-btn" onclick="editNote(${n.id}, '${escapeHtml(n.content)}')">✎</button>
+            <button class="delete-btn" onclick="deleteNote(${n.id})">✕</button>
+          </div>
+        </div>
+      `).join('') : `<div class="empty-notes">No notes yet.</div>`;
+
+      const notesSection = `
+        <div class="card">
+          <h2>📝 Notes</h2>
+          <div class="flex-row">
+            <input type="text" id="noteInput" placeholder="Write a note..." />
+            <button class="btn btn-accent" onclick="addNote()">Add</button>
+          </div>
+          <div class="notes-list">${notesList}</div>
         </div>
       `;
+
+      // ─── Diary Entries ────────────────────────────────────
+      const diaryList = entries.length ? entries.map(e => `
+        <div class="entry-item">
+          <div class="content">${escapeHtml(e.content)}</div>
+          <div class="timestamp">${formatTimeAgo(e.timestamp)}</div>
+          <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      `).join('') : `<div class="empty-entries">No diary entries.</div>`;
+
+      const diarySection = `
+        <div class="card">
+          <h2>📖 Diary Entries</h2>
+          <form class="entry-form" onsubmit="event.preventDefault(); createEntry(document.getElementById('entryContent').value);">
+            <textarea id="entryContent" placeholder="Write a short message, rant, or blog snippet..." required></textarea>
+            <div class="submit-row">
+              <button type="submit" class="btn btn-accent">Post Entry</button>
+            </div>
+          </form>
+          <div class="entry-list">${diaryList}</div>
+        </div>
+      `;
+
+      // ─── Blacklist ────────────────────────────────────────
+      const blacklistItems = blacklist.length ? blacklist.map(b => `
+        <div class="blacklist-item">
+          <div class="content">
+            <a href="https://whatismyipaddress.com/ip/${b.ip}" target="_blank" class="ip-link">${b.ip}</a>
+            ${b.reason ? ' — ' + escapeHtml(b.reason) : ''}
+          </div>
+          <div class="timestamp">${formatTimeAgo(b.created_at)}</div>
+          <button class="delete-btn" onclick="removeBlacklist('${b.ip}')">✕</button>
+        </div>
+      `).join('') : `<div class="empty-blacklist">No blacklisted IPs.</div>`;
+
+      const blacklistSection = `
+        <div class="card">
+          <h2>🚫 Blacklist</h2>
+          <div class="flex-row">
+            <input type="text" id="blacklistIp" placeholder="IP to block" />
+            <input type="text" id="blacklistReason" placeholder="Reason (optional)" />
+            <button class="btn btn-danger" onclick="addBlacklist()">Block</button>
+          </div>
+          <div class="blacklist-list">${blacklistItems}</div>
+        </div>
+      `;
+
+      // ─── Info card ────────────────────────────────────────
+      const infoCard = `
+        <div class="card" style="border-color:var(--border); opacity:0.7;">
+          <p style="font-size:0.8rem; color:var(--text-muted);">⚡ Statuses &amp; Notes reset 24h after creation.</p>
+          <p style="font-size:0.7rem; color:var(--text-muted); opacity:0.5;">All admin actions are logged and sent to Telegram.</p>
+        </div>
+      `;
+
+      mainContent.innerHTML = statusCards + notesSection + diarySection + blacklistSection + infoCard;
     }
 
     function renderStatusItem(key, icon, data, options) {
       const display = data ? data.display || data.value : null;
-      const meta = data ? `${formatTimeAgo(data.timestamp)} · ${formatExact(data.timestamp)}` : 'not logged';
+      const meta = data ? `${formatTimeAgo(data.timestamp)}` : 'not logged';
 
       const optionsHtml = options.map(opt => {
         const active = display === opt.label || (data && data.value === opt.value);
@@ -708,18 +1024,31 @@ function renderHeader() {
           <div class="meta">${meta}</div>
           <div class="actions">
             ${optionsHtml}
+            <div class="custom-input">
+              <input type="text" id="custom-${key}" placeholder="Custom..." />
+              <button class="btn-sm" onclick="setCustomStatus('${key}')">+</button>
+            </div>
             <button class="clear-btn" onclick="clearStatus('${key}')">✕ clear</button>
           </div>
         </div>
       `;
     }
 
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     // ─── INIT ────────────────────────────────────────────────
     async function init() {
       await fetchUser();
       if (currentUser) {
-        await fetchStatuses();
-        setInterval(fetchStatuses, 10000);
+        // Poll for updates every 20s (skip while typing)
+        setInterval(async () => {
+          if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+          await Promise.all([fetchStatuses(), fetchNotes(), fetchEntries(), fetchBlacklist()]);
+        }, 20000);
       }
     }
 
@@ -729,7 +1058,7 @@ function renderHeader() {
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · dashboard');
+    console.log('🕵️ Arsan\'s Archive · dashboard with custom status, notes, blacklist');
   </script>
 </body>
 </html>
