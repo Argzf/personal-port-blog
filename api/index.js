@@ -20,7 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses table (existing)
+  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,8 +32,7 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
-
-  // Notes table
+  // Notes
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,8 +42,7 @@ async function initDatabase() {
       date TEXT
     )
   `);
-
-  // Blacklist table
+  // Blacklist
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +51,6 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
-
   // Request logs (for rate limiting & request counting)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
@@ -102,7 +99,7 @@ const loginLimiter = rateLimit({
   max: 3, // 3 attempts per minute
   message: { error: 'Too many login attempts. Please try again later.' },
   keyGenerator: (req) => req.ip,
-  skipSuccessfulRequests: true, // only count failed attempts
+  skipSuccessfulRequests: true,
 });
 
 // ─── Blacklist middleware ────────────────────────────────
@@ -182,6 +179,10 @@ function getTehranDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tehran' });
 }
 
+function isExpired(timestamp) {
+  return (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
+}
+
 // ─── Telegram Logger ──────────────────────────────────────
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -216,7 +217,6 @@ async function logAction(action, details = {}, req = null) {
   const userAgent = req?.get('user-agent') || 'unknown';
   const timestamp = Date.now();
 
-  // Log to database for request counts
   if (req) {
     await turso.execute({
       sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, is_admin) 
@@ -225,7 +225,6 @@ async function logAction(action, details = {}, req = null) {
     });
   }
 
-  // Prepare message for Telegram
   const user = req?.user?.username || 'guest';
   const time = new Date(timestamp).toLocaleString('en-US', { timeZone: 'Asia/Tehran' });
   let msg = `<b>${action}</b>\n`;
@@ -233,13 +232,9 @@ async function logAction(action, details = {}, req = null) {
   msg += `🕒 ${time}\n`;
   if (ip !== 'unknown') msg += `🌐 ${formatIpLink(ip)}\n`;
   msg += `📱 ${userAgent}\n`;
-  
-  // Add extra details
   for (const [key, value] of Object.entries(details)) {
     msg += `🔹 ${key}: ${value}\n`;
   }
-
-  // Get request count in past 24h
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
   const countResult = await turso.execute({
     sql: 'SELECT COUNT(*) as count FROM request_logs WHERE ip = ? AND timestamp > ?',
@@ -249,11 +244,6 @@ async function logAction(action, details = {}, req = null) {
   msg += `📊 Requests (24h): ${count}\n`;
 
   await sendTelegramMessage(msg);
-}
-
-// ─── Expiry check (24h from creation) ────────────────────
-function isExpired(timestamp) {
-  return (Date.now() - timestamp) > 24 * 60 * 60 * 1000;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -294,7 +284,6 @@ app.post('/auth/password', loginLimiter, async (req, res) => {
   const trimmedExpected = expectedPassword.trim();
   
   if (trimmedInput === trimmedExpected) {
-    console.log('[Auth] ✅ Success');
     const token = jwt.sign(
       { id: 'admin', username: 'admin', avatar: null },
       process.env.JWT_SECRET || 'dev-jwt-secret',
@@ -307,24 +296,21 @@ app.post('/auth/password', loginLimiter, async (req, res) => {
       sameSite: 'lax',
       path: '/',
     });
-    // Log the successful login
     await logAction('Admin Login', { method: 'password' }, req);
     return res.json({ success: true });
   }
   
-  // Log failed attempt
   await logAction('Failed Login Attempt', { method: 'password' }, req);
   res.status(401).json({ error: 'Invalid password' });
 });
 
-// ─── Public statuses (no auth) ─────────────────────────
+// ─── Public statuses ─────────────────────────────────────
 app.get('/api/statuses', async (req, res) => {
   const result = await turso.execute({
     sql: 'SELECT key, value, display, timestamp, date FROM statuses',
   });
   const statuses = {};
   for (const row of result.rows) {
-    // Only include if not expired
     if (!isExpired(row.timestamp)) {
       statuses[row.key] = {
         value: row.value,
@@ -333,21 +319,19 @@ app.get('/api/statuses', async (req, res) => {
         date: row.date,
       };
     } else {
-      // Delete expired entries
       await turso.execute({
         sql: 'DELETE FROM statuses WHERE key = ? AND timestamp = ?',
         args: [row.key, row.timestamp],
       });
     }
   }
-  // Ensure default keys exist
   ['caffeine', 'activity', 'mood'].forEach(k => {
     if (!statuses[k]) statuses[k] = null;
   });
   res.json({ statuses });
 });
 
-// ─── Admin write operations (auth required) ─────────────
+// ─── Admin status operations ────────────────────────────
 app.post('/api/status', authMiddleware, async (req, res) => {
   const { key, value, display } = req.body;
   if (!['caffeine', 'activity', 'mood'].includes(key)) {
@@ -383,7 +367,6 @@ app.get('/api/notes', authMiddleware, async (req, res) => {
   const result = await turso.execute({
     sql: 'SELECT id, content, created_at, updated_at FROM notes ORDER BY created_at DESC',
   });
-  // Filter expired
   const active = result.rows.filter(row => !isExpired(row.created_at));
   res.json({ notes: active });
 });
@@ -420,7 +403,6 @@ app.put('/api/notes/:id', authMiddleware, async (req, res) => {
 
 app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  // Get note content for log
   const result = await turso.execute({
     sql: 'SELECT content FROM notes WHERE id = ?',
     args: [id],
@@ -432,6 +414,46 @@ app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   });
   await logAction('Note Deleted', { id, content: content.slice(0, 50) }, req);
   res.json({ success: true });
+});
+
+// ─── Diary entries ──────────────────────────────────────
+app.get('/api/entries', authMiddleware, async (req, res) => {
+  const result = await turso.execute({
+    sql: 'SELECT id, content, timestamp, date FROM entries ORDER BY timestamp DESC LIMIT 50',
+  });
+  res.json({ entries: result.rows });
+});
+
+app.post('/api/entries', authMiddleware, async (req, res) => {
+  const { content } = req.body;
+  if (!content || content.trim().length === 0) {
+    return res.status(400).json({ error: 'Content is required' });
+  }
+  const timestamp = Date.now();
+  const date = getTehranDate();
+  await turso.execute({
+    sql: 'INSERT INTO entries (content, timestamp, date) VALUES (?, ?, ?)',
+    args: [content.trim(), timestamp, date],
+  });
+  await logAction('Diary Entry Added', { content: content.trim().slice(0, 50) }, req);
+  res.json({ success: true });
+});
+
+app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  await turso.execute({
+    sql: 'DELETE FROM entries WHERE id = ?',
+    args: [id],
+  });
+  await logAction('Diary Entry Deleted', { id }, req);
+  res.json({ success: true });
+});
+
+app.get('/api/public-entries', async (req, res) => {
+  const result = await turso.execute({
+    sql: 'SELECT id, content, timestamp FROM entries ORDER BY timestamp DESC LIMIT 10',
+  });
+  res.json({ entries: result.rows });
 });
 
 // ─── Blacklist ──────────────────────────────────────────
@@ -462,48 +484,6 @@ app.delete('/api/blacklist/:ip', authMiddleware, async (req, res) => {
     args: [ip],
   });
   await logAction('IP Removed from Blacklist', { ip }, req);
-  res.json({ success: true });
-});
-
-// ─── Diary entries (public) ──────────────────────────────
-app.get('/api/public-entries', async (req, res) => {
-  // We keep diary entries permanent, but we might want to add expiry later? Not requested.
-  const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp FROM entries ORDER BY timestamp DESC LIMIT 10',
-  });
-  res.json({ entries: result.rows });
-});
-
-// ─── Diary entries (admin) ──────────────────────────────
-app.get('/api/entries', authMiddleware, async (req, res) => {
-  const result = await turso.execute({
-    sql: 'SELECT id, content, timestamp, date FROM entries ORDER BY timestamp DESC LIMIT 50',
-  });
-  res.json({ entries: result.rows });
-});
-
-app.post('/api/entries', authMiddleware, async (req, res) => {
-  const { content } = req.body;
-  if (!content || content.trim().length === 0) {
-    return res.status(400).json({ error: 'Content is required' });
-  }
-  const timestamp = Date.now();
-  const date = getTehranDate();
-  await turso.execute({
-    sql: 'INSERT INTO entries (content, timestamp, date) VALUES (?, ?, ?)',
-    args: [content.trim(), timestamp, date],
-  });
-  await logAction('Diary Entry Added', { content: content.trim().slice(0, 50) }, req);
-  res.json({ success: true });
-});
-
-app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  await turso.execute({
-    sql: 'DELETE FROM entries WHERE id = ?',
-    args: [id],
-  });
-  await logAction('Diary Entry Deleted', { id }, req);
   res.json({ success: true });
 });
 
