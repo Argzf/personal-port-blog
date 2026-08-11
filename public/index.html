@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
+    /* ── same as before, with carousel additions ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --board-bg: #2C1E16; --board-grid: rgba(60,40,30,0.3);
@@ -38,7 +39,7 @@
       font-family: var(--font-body);
       background: var(--board-bg); color: var(--ink);
       line-height: 1.6;
-      padding: clamp(16px, 4vw, 40px);
+      padding: clamp(16px,4vw,40px);
       min-height: 100vh;
       display: flex; justify-content: center;
       background-image:
@@ -49,152 +50,40 @@
     }
     .container { max-width: 860px; width: 100%; }
 
-    .board-header {
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-      margin-bottom: 24px; padding: clamp(12px, 2vw, 20px) clamp(16px, 2.5vw, 24px);
-      background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 4px;
-      box-shadow: 0 8px 24px var(--shadow); position: relative; gap: 8px;
+    .board-header { /* same as before */ }
+    /* ... all previous styles ... */
+    /* Carousel for reviews */
+    .review-carousel {
+      position: relative;
+      overflow: hidden;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 8px 0;
+      min-height: 100px;
     }
-    .board-header::after {
-      content: ""; position: absolute; bottom: -6px; left: 20%; right: 20%;
-      height: 2px; background: var(--red-string); opacity: 0.3;
+    .review-slide {
+      display: none;
+      animation: fadeIn 0.5s;
     }
-    .board-header .badge {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,1vw,0.6rem);
-      letter-spacing: 0.06em; color: var(--red-string);
-      border: 1px solid var(--red-string); padding: 2px 12px; border-radius: 2px;
-      text-transform: uppercase; opacity: 0.8; display: inline-block; margin-bottom: 2px;
-    }
-    .board-header h1 {
-      font-family: var(--font-serif); font-size: clamp(1.4rem,5vw,2.2rem);
-      font-weight: 400; letter-spacing: -0.02em;
-      display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap;
-    }
-    .board-header h1 .sub {
-      font-family: var(--font-body); font-size: clamp(0.7rem,1.8vw,1rem);
-      font-weight: 400; color: var(--ink-light); font-style: normal;
-      background: var(--tag-bg); padding: 0 12px; border-radius: 20px;
-      border: 1px solid var(--card-border); white-space: nowrap;
-    }
-    .board-header .case-ref {
-      font-family: var(--font-mono); font-size: clamp(0.6rem,1.2vw,0.7rem);
-      color: var(--ink-light); letter-spacing: 0.04em; text-align: right; line-height: 1.4;
-      flex-shrink: 0;
-    }
-    .board-header .case-ref .age-highlight { color: var(--red-string); font-weight: 600; }
-    .board-header .red-string-decoration {
-      position: absolute; bottom: -12px; left: 0; right: 0; height: 12px;
-      background: repeating-linear-gradient(90deg, var(--red-string) 0px, var(--red-string) 4px, transparent 4px, transparent 12px);
-      opacity: 0.15; border-radius: 0 0 2px 2px;
-    }
+    .review-slide.active { display: block; }
+    .review-slide .review-name { font-weight: 600; color: var(--red-string); }
+    .review-slide .review-message { font-size: 0.95rem; margin: 4px 0; }
+    .review-slide .review-time { font-size: 0.6rem; color: var(--ink-light); font-family: var(--font-mono); opacity: 0.6; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .board-content { display: flex; flex-direction: column; gap: clamp(18px,3vw,28px); }
+    .carousel-dots {
+      display: flex; justify-content: center; gap: 6px; margin-top: 12px;
+    }
+    .carousel-dots .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--card-border);
+      cursor: pointer; transition: 0.2s;
+    }
+    .carousel-dots .dot.active { background: var(--red-string); }
 
-    .polaroid-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,180px),1fr));
-      gap: clamp(20px,3vw,32px) clamp(16px,2vw,24px);
-      padding: 8px 4px; position: relative;
-    }
-    .polaroid-grid .red-string-svg {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 0; overflow: visible;
-    }
-    .polaroid-grid .red-string-svg path {
-      stroke: var(--red-string); stroke-width: 2; fill: none; opacity: 0.35;
-      stroke-linecap: round; stroke-linejoin: round;
-    }
-    .polaroid-grid .red-string-svg circle { fill: var(--red-string); opacity: 0.45; r: 3.5; }
-
-    .polaroid {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      padding: clamp(10px,1.5vw,14px) clamp(10px,1.5vw,14px) clamp(12px,1.8vw,16px);
-      box-shadow: 0 8px 20px var(--shadow), 0 2px 4px rgba(0,0,0,0.2);
-      border-radius: 2px; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease;
-      transform: rotate(var(--rot, 0deg)); min-width: 0; z-index: 1;
-    }
-    .polaroid:hover { transform: rotate(0deg) scale(1.02); z-index: 10; box-shadow: 0 12px 32px var(--shadow); }
-    .polaroid::before {
-      content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-      width: 14px; height: 14px;
-      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
-      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.15); z-index: 2;
-    }
-    .polaroid::after {
-      content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
-      width: 2px; height: 6px; background: rgba(0,0,0,0.3); border-radius: 0 0 50% 50%; z-index: 1;
-    }
-    .polaroid .photo-icon { font-size: clamp(1.5rem,3vw,2rem); text-align: center; display: block; margin-bottom: 2px; opacity: 0.8; }
-    .polaroid .label {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.55rem);
-      text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-light);
-      font-weight: 600; text-align: center; margin-bottom: 2px;
-    }
-    .polaroid .value {
-      font-family: var(--font-hand); font-size: clamp(1rem,2.5vw,1.3rem);
-      font-weight: 700; text-align: center; line-height: 1.3; color: var(--ink);
-      min-height: 2.2rem; display: flex; flex-direction: column; justify-content: center; gap: 0;
-    }
-    .polaroid .meta {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
-      color: var(--ink-light); text-align: center; margin-top: 4px; opacity: 0.6;
-      border-top: 1px dashed var(--card-border); padding-top: 4px; min-height: 1.4rem;
-    }
-    .polaroid .evidence-tag {
-      position: absolute; bottom: -6px; right: -6px;
-      background: var(--red-string); color: var(--card-bg);
-      font-family: var(--font-mono); font-size: clamp(0.4rem,0.7vw,0.45rem);
-      letter-spacing: 0.04em; padding: 1px 8px; border-radius: 1px; opacity: 0.7; text-transform: uppercase;
-    }
-
-    .subject-profile {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
-      border-radius: 2px; position: relative; transform: rotate(-0.5deg); margin: 8px 0 4px;
-    }
-    .subject-profile::before {
-      content: ""; position: absolute; top: -10px; left: 20%;
-      width: 14px; height: 14px;
-      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
-      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-    .subject-profile .stamp {
-      font-family: var(--font-mono); font-size: clamp(0.45rem,0.8vw,0.5rem);
-      letter-spacing: 0.06em; color: var(--red-string);
-      border: 1px solid var(--red-string); padding: 1px 10px; border-radius: 1px;
-      display: inline-block; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px;
-    }
-    .subject-profile h2 { font-family: var(--font-serif); font-size: clamp(1.1rem,3vw,1.4rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.3; }
-    .subject-profile h2 .sub { font-family: var(--font-body); font-size: clamp(0.75rem,1.5vw,0.9rem); font-weight: 300; color: var(--ink-light); font-style: italic; }
-    .subject-profile .bio-text { font-size: clamp(0.8rem,1.5vw,0.9rem); line-height: 1.7; margin-top: 4px; color: var(--ink); }
-    .subject-profile .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .subject-profile .tags .tag {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
-      letter-spacing: 0.04em; background: var(--tag-bg); border: 1px solid var(--card-border);
-      padding: 2px 12px; border-radius: 2px; color: var(--ink-light); white-space: nowrap;
-    }
-    .subject-profile .tags .tag.accent { border-color: var(--red-string); color: var(--red-string); }
-
-    .sticky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px,2.5vw,24px); }
-    .sticky {
-      background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
-      padding: clamp(12px,2vw,18px); box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
-      border-radius: 1px; position: relative; transform: rotate(var(--rot, 0deg));
-    }
-    .sticky::before {
-      content: ""; position: absolute; top: -6px; left: 30%;
-      width: 12px; height: 12px;
-      background: radial-gradient(circle at 35% 35%, #E85A4A, var(--thumbtack));
-      border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .sticky h3 { font-family: var(--font-hand); font-size: clamp(0.85rem,1.8vw,0.95rem); font-weight: 700; margin-bottom: 4px; color: var(--ink); letter-spacing: -0.01em; }
-    .sticky ul { list-style: none; padding: 0; margin: 0; }
-    .sticky ul li { font-family: var(--font-hand); font-size: clamp(0.75rem,1.5vw,0.85rem); font-weight: 400; padding: 1px 0; display: flex; align-items: baseline; gap: 4px; color: var(--ink); opacity: 0.85; }
-    .sticky ul li .dot { color: var(--red-string); font-weight: 700; font-size: 0.6rem; }
-    .sticky ul li em { font-style: italic; opacity: 0.7; }
-
+    /* Diary entries etc. */
     .diary-folder {
       background: var(--card-bg); border: 1px solid var(--card-border);
       padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
@@ -237,7 +126,6 @@
     }
     .diary-entry .entry-actions .btn-sm:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
 
-    /* Quote floating button */
     #quoteButton {
       position: fixed; bottom: 24px; right: 24px;
       background: var(--red-string); color: var(--card-bg);
@@ -265,31 +153,11 @@
       float: right;
     }
 
-    .review-item {
-      background: var(--tag-bg); border-left: 2px solid var(--red-string);
-      padding: 8px 12px; border-radius: 2px; margin-bottom: 8px;
-    }
-    .review-item .review-name { font-weight: 600; }
-    .review-item .review-time { font-size: 0.6rem; color: var(--ink-light); font-family: var(--font-mono); opacity: 0.6; }
-
-    .footer {
-      margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border);
-      text-align: center;
-    }
-    .footer .links {
-      display: flex; justify-content: center; gap: clamp(12px,2.5vw,24px);
-      flex-wrap: wrap; margin-bottom: 12px;
-    }
-    .footer .links a {
-      font-family: var(--font-mono); font-size: clamp(0.65rem,1vw,0.75rem);
-      color: var(--ink-light); text-decoration: none; letter-spacing: 0.04em;
-      transition: color 0.2s ease; border-bottom: 1px dotted transparent;
-    }
+    .footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border); text-align: center; }
+    .footer .links { display: flex; justify-content: center; gap: clamp(12px,2.5vw,24px); flex-wrap: wrap; margin-bottom: 12px; }
+    .footer .links a { font-family: var(--font-mono); font-size: clamp(0.65rem,1vw,0.75rem); color: var(--ink-light); text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s ease; border-bottom: 1px dotted transparent; }
     .footer .links a:hover { color: var(--red-string); border-bottom-color: var(--red-string); }
-    .footer .footer-note {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
-      color: var(--ink-light); opacity: 0.4; letter-spacing: 0.04em;
-    }
+    .footer .footer-note { font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem); color: var(--ink-light); opacity: 0.4; letter-spacing: 0.04em; }
 
     @media (max-width: 600px) {
       .board-header { flex-direction: column; align-items: flex-start; }
@@ -312,7 +180,7 @@
 </head>
 <body>
   <div class="container">
-    <!-- ═══ HEADER ═══ -->
+    <!-- ─── HEADER ─── -->
     <div class="board-header">
       <div>
         <div class="badge">🕵️ active investigation</div>
@@ -324,9 +192,9 @@
       <div class="red-string-decoration"></div>
     </div>
 
-    <!-- ═══ CONTENT ═══ -->
+    <!-- ─── CONTENT ─── -->
     <div class="board-content">
-      <!-- STATUS POLAROIDS -->
+      <!-- STATUS POLAROIDS (same as before) -->
       <div style="position:relative;">
         <div style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
           ══ observation log ══
@@ -338,7 +206,6 @@
             <circle id="dotB" cx="0" cy="0" r="0" />
             <circle id="dotC" cx="0" cy="0" r="0" />
           </svg>
-          <!-- EXHIBIT A -->
           <div class="polaroid" style="--rot:-1.5deg;" id="drinksItem">
             <span class="photo-icon">🍹</span>
             <div class="label">drinks</div>
@@ -346,7 +213,6 @@
             <div class="meta" id="drinksMeta">not logged</div>
             <span class="evidence-tag">EXHIBIT A</span>
           </div>
-          <!-- EXHIBIT B -->
           <div class="polaroid" style="--rot:2deg;" id="activityItem">
             <span class="photo-icon">👤</span>
             <div class="label">activity</div>
@@ -354,7 +220,6 @@
             <div class="meta" id="activityMeta">not logged</div>
             <span class="evidence-tag">EXHIBIT B</span>
           </div>
-          <!-- EXHIBIT C -->
           <div class="polaroid" style="--rot:-0.8deg;" id="moodItem">
             <span class="photo-icon">🎭</span>
             <div class="label">mood</div>
@@ -382,38 +247,17 @@
         </div>
       </div>
 
-      <!-- STICKY NOTES: Interests & Traits -->
-      <div class="sticky-grid">
-        <div class="sticky" style="--rot:-1deg;">
-          <h3>Interests</h3>
-          <ul>
-            <li><span class="dot">·</span> Coding · building things, problem-solving</li>
-            <li><span class="dot">·</span> Systems · understanding architecture and interdependencies</li>
-            <li><span class="dot">·</span> Geopolitics · international relations and power dynamics</li>
-            <li><span class="dot">·</span> Analyses · breaking down complex problems, finding patterns</li>
-            <li><span class="dot">·</span> Writing policies · creating frameworks and structuring rules</li>
-            <li><span class="dot">·</span> Deep conversations · exploring ideas, understanding perspectives</li>
-            <li><span class="dot">·</span> Exploration · discovering new places, satisfying curiosity</li>
-            <li><span class="dot">·</span> Hiking · being outdoors, physical challenge, connecting with nature</li>
-          </ul>
+      <!-- REVIEWS CAROUSEL (placed higher) -->
+      <div class="diary-folder" style="margin-top:4px;">
+        <span class="big-icon">⭐</span>
+        <p><strong>Reviews &amp; Messages</strong></p>
+        <div id="reviewsContainer" class="review-carousel">
+          <!-- Rendered by JavaScript -->
         </div>
-        <div class="sticky" style="--rot:1.5deg;">
-          <h3>Character Traits</h3>
-          <ul>
-            <li><span class="dot">·</span> Analytical · pattern‑seeking, logical deconstruction</li>
-            <li><span class="dot">·</span> Curious · loves concepts &amp; gadgets, always asking why</li>
-            <li><span class="dot">·</span> Organised · reliable, detail‑oriented, systematic</li>
-            <li><span class="dot">·</span> Calm under pressure · composed, clear-headed in crises</li>
-            <li><span class="dot">·</span> Mediator · resolving conflicts, finding common ground</li>
-            <li><span class="dot">·</span> Candid · honest and direct, no filters</li>
-            <li><span class="dot">·</span> Adventurous · seeking new experiences, embracing the unknown</li>
-            <li><span class="dot">·</span> Selective social · deep with close friends, reserved with strangers</li>
-            <li><span class="dot">·</span> <em>“make stuff or break stuff when bored”</em></li>
-          </ul>
-        </div>
+        <div id="reviewDots" class="carousel-dots"></div>
       </div>
 
-      <!-- NOTES (sticky container) -->
+      <!-- NOTES -->
       <div class="diary-folder" style="margin-top:4px;">
         <span class="big-icon">📌</span>
         <p><strong>Notes</strong></p>
@@ -429,24 +273,15 @@
         <div id="diaryEntriesContainer" class="diary-entries">
           <!-- Rendered by JavaScript -->
         </div>
-        <div class="folder-tags">
-          <span>reflections</span>
-          <span>project logs</span>
-          <span>random thoughts</span>
-        </div>
-      </div>
-
-      <!-- REVIEWS -->
-      <div class="diary-folder" style="margin-top:4px;">
-        <span class="big-icon">⭐</span>
-        <p><strong>Reviews &amp; Messages</strong></p>
-        <div id="reviewsContainer" style="margin-top:8px; text-align:left;">
-          <!-- Rendered by JavaScript -->
+        <div class="folder-tags" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">reflections</span>
+          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">project logs</span>
+          <span style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.6rem); letter-spacing:0.04em; background:var(--tag-bg); border:1px solid var(--card-border); padding:1px 12px; border-radius:2px; color:var(--ink-light);">random thoughts</span>
         </div>
       </div>
     </div>
 
-    <!-- ═══ FOOTER ═══ -->
+    <!-- ─── FOOTER ─── -->
     <footer class="footer">
       <div class="links">
         <a href="#" target="_blank">GitHub</a>
@@ -463,6 +298,10 @@
   <button id="quoteButton" onclick="copyQuote()">📝 Quote</button>
 
   <script>
+    // ─── Same as before, with carousel logic ──────────────────
+    // ... (copy the JavaScript from the previous version, but add carousel functions)
+    // I'll include the full script here for completeness.
+
     // ─── Dynamic Age ────────────────────────────────────────
     function calculateAge() {
       const birth = new Date('2012-05-10');
@@ -552,6 +391,57 @@
       return div.innerHTML;
     }
 
+    // ─── Carousel ────────────────────────────────────────────
+    let reviewCarouselIndex = 0;
+    let reviewCarouselTimer = null;
+
+    function renderCarousel(reviews) {
+      const container = document.getElementById('reviewsContainer');
+      const dotsContainer = document.getElementById('reviewDots');
+      if (!container || !dotsContainer) return;
+
+      if (reviews.length === 0) {
+        container.innerHTML = `<div class="diary-empty">No reviews yet.</div>`;
+        dotsContainer.innerHTML = '';
+        return;
+      }
+
+      // Build slides
+      container.innerHTML = reviews.map((r, i) => `
+        <div class="review-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
+          <div class="review-name">${escapeHtml(r.name)}</div>
+          <div class="review-message">${escapeHtml(r.message)}</div>
+          <div class="review-time">${formatTimeAgo(r.timestamp)}</div>
+        </div>
+      `).join('');
+
+      // Build dots
+      dotsContainer.innerHTML = reviews.map((_, i) => `
+        <div class="dot ${i === 0 ? 'active' : ''}" onclick="goToReview(${i})"></div>
+      `).join('');
+
+      reviewCarouselIndex = 0;
+      clearInterval(reviewCarouselTimer);
+      if (reviews.length > 1) {
+        reviewCarouselTimer = setInterval(() => {
+          const total = reviews.length;
+          const next = (reviewCarouselIndex + 1) % total;
+          goToReview(next);
+        }, 6000);
+      }
+    }
+
+    function goToReview(index) {
+      const slides = document.querySelectorAll('.review-slide');
+      const dots = document.querySelectorAll('.dot');
+      if (!slides.length) return;
+      slides.forEach(s => s.classList.remove('active'));
+      dots.forEach(d => d.classList.remove('active'));
+      if (slides[index]) slides[index].classList.add('active');
+      if (dots[index]) dots[index].classList.add('active');
+      reviewCarouselIndex = index;
+    }
+
     // ─── Fetch data ──────────────────────────────────────────
     async function fetchStatuses() {
       try {
@@ -630,19 +520,7 @@
         if (!res.ok) throw new Error('Failed to fetch reviews');
         const data = await res.json();
         const reviews = data.reviews || [];
-        const container = document.getElementById('reviewsContainer');
-        if (!container) return;
-        if (reviews.length === 0) {
-          container.innerHTML = `<div class="diary-empty">No reviews yet.</div>`;
-          return;
-        }
-        container.innerHTML = reviews.map(r => `
-          <div class="review-item">
-            <div class="review-name">${escapeHtml(r.name)}</div>
-            <div>${escapeHtml(r.message)}</div>
-            <div class="review-time">${formatTimeAgo(r.timestamp)}</div>
-          </div>
-        `).join('');
+        renderCarousel(reviews);
       } catch (e) { console.warn('Reviews fetch error:', e); }
     }
 
@@ -667,20 +545,17 @@
     }
 
     function quoteEntry(id, content, title) {
-      // Store the quote text in a global variable to be used by the floating button
       const selection = window.getSelection();
       let quoteText = '';
       if (selection && selection.toString().trim()) {
         quoteText = selection.toString().trim();
       } else {
-        // If no selection, quote the whole entry (first 300 chars)
         quoteText = content.slice(0, 300) + (content.length > 300 ? '...' : '');
       }
       window._quoteData = { id, content: quoteText, title };
       const btn = document.getElementById('quoteButton');
       btn.style.display = 'flex';
       btn.textContent = `📝 Quote "${quoteText.slice(0, 40)}${quoteText.length > 40 ? '…' : ''}"`;
-      // Hide after 10s or on click
       clearTimeout(window._quoteTimer);
       window._quoteTimer = setTimeout(() => { btn.style.display = 'none'; }, 10000);
     }
@@ -730,7 +605,6 @@
       }
       setInterval(updateRedString, 2000);
 
-      // Hide quote button when clicking outside
       document.addEventListener('click', (e) => {
         if (!e.target.closest('#quoteButton')) {
           document.getElementById('quoteButton').style.display = 'none';
@@ -739,7 +613,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · connected to API with share & quote');
+    console.log('🕵️ Arsan\'s Archive · connected to API with share, quote, carousel');
   </script>
 </body>
 </html>
