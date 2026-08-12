@@ -45,6 +45,16 @@
 
     .container { max-width: 860px; width: 100%; }
 
+    /* ─── Fix: Prevent visited links from turning purple ─── */
+    a, a:link, a:visited {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover, a:active {
+      color: var(--accent-dim);
+      text-decoration: underline;
+    }
+
     .header {
       display: flex;
       flex-wrap: wrap;
@@ -868,7 +878,8 @@
       }
     };
 
-    function openDiaryModal(entry = null) {
+    // Make openDiaryModal globally accessible for onclick handlers
+    window.openDiaryModal = function(entry = null) {
       const isEdit = entry !== null;
       const data = entry || { id: null, title: '', content: '', link: '', image_url: '', scheduled_at: '' };
 
@@ -892,12 +903,12 @@
         </div>
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
+    };
 
-    function closeDiaryModal() {
+    window.closeDiaryModal = function() {
       const modal = document.getElementById('diaryModal');
       if (modal) modal.remove();
-    }
+    };
 
     async function deleteDiaryEntry(id) {
       if (!confirm('Delete this entry?')) return;
@@ -1249,6 +1260,17 @@
         const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
         const linkLabel = e.link && e.link.trim() !== '' ? '🔗 Custom Link' : '🔗 Permalink';
 
+        // Escape the entry data for the modal - use a safe JSON string
+        const entryData = {
+          id: e.id,
+          title: e.title || '',
+          content: e.content || '',
+          link: e.link || '',
+          image_url: e.image_url || '',
+          scheduled_at: e.scheduled_at || ''
+        };
+        const entryJson = JSON.stringify(entryData).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
         return `
           <div class="entry-item">
             <div class="entry-header">
@@ -1265,7 +1287,7 @@
               <span>${formatTimeAgo(e.timestamp)}</span>
             </div>
             <div class="entry-actions">
-              <button class="btn btn-sm" onclick="openDiaryModal(${JSON.stringify(e)})">✎ Edit</button>
+              <button class="btn btn-sm" onclick="window.openDiaryModal(${entryJson})">✎ Edit</button>
               <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteDiaryEntry(${e.id})">✕ Delete</button>
             </div>
           </div>
@@ -1275,7 +1297,7 @@
       return `
         <div class="card">
           <h2>📖 Diary Entries</h2>
-          <button class="btn btn-accent" onclick="openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
+          <button class="btn btn-accent" onclick="window.openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
           <div class="entry-list">${diaryList}</div>
         </div>
       `;

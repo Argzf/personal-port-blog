@@ -34,6 +34,16 @@
         --accent: #D4875E;
       }
     }
+    /* ─── Fix: Prevent visited links from turning purple ─── */
+    a, a:link, a:visited {
+      color: var(--red-string);
+      text-decoration: none;
+    }
+    a:hover, a:active {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
     html { font-size: 16px; }
     body {
       font-family: var(--font-body);
@@ -215,7 +225,16 @@
     .diary-folder p { font-size: clamp(0.8rem,1.5vw,0.9rem); color: var(--ink-light); margin-top: 2px; }
     .diary-folder p strong { color: var(--ink); }
 
-    .diary-entries { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; text-align: left; max-height: 500px; overflow-y: auto; padding-right: 4px; }
+    .diary-entries {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
     .diary-entries::-webkit-scrollbar { width: 4px; }
     .diary-entries::-webkit-scrollbar-track { background: transparent; }
     .diary-entries::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -232,13 +251,32 @@
     .diary-entry .entry-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.65rem; color: var(--ink-light); font-family: var(--font-mono); margin-top: 4px; }
     .diary-entry .entry-meta a { color: var(--red-string); text-decoration: none; }
     .diary-entry .entry-meta a:hover { text-decoration: underline; }
-    .diary-entry .entry-actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-    .diary-entry .entry-actions .btn-sm {
-      font-size: 0.6rem; padding: 2px 10px; background: var(--tag-bg); border: 1px solid var(--card-border);
-      border-radius: 30px; color: var(--ink-light); cursor: pointer; transition: 0.15s;
-      font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 4px;
+
+    .diary-view-all {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 18px;
+      border: 1px solid var(--red-string);
+      border-radius: 30px;
+      color: var(--red-string);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
     }
-    .diary-entry .entry-actions .btn-sm:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
+    .diary-view-all:hover {
+      background: var(--red-string);
+      color: var(--card-bg);
+      text-decoration: none;
+    }
+
+    .diary-empty {
+      color: var(--ink-light);
+      opacity: 0.5;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 0.95rem;
+    }
 
     .sticky-note-container {
       background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
@@ -278,13 +316,6 @@
     .carousel-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
     .carousel-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--card-border); cursor: pointer; transition: 0.2s; }
     .carousel-dots .dot.active { background: var(--red-string); }
-
-    .folder-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    .folder-tags span {
-      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
-      letter-spacing: 0.04em; background: var(--tag-bg); border: 1px solid var(--card-border);
-      padding: 1px 12px; border-radius: 2px; color: var(--ink-light);
-    }
 
     .footer {
       margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border);
@@ -439,6 +470,7 @@
       const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
     function escapeHtml(text) {
+      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
@@ -543,18 +575,17 @@
       `;
     }
 
+    // ─── Diary Section: Only the most recent entry ─────────
     function buildDiarySection() {
       return `
         <div class="diary-folder">
           <span class="big-icon">📖</span>
-          <p><strong>Diary Entries</strong></p>
+          <p><strong>Latest Diary Entry</strong></p>
           <div id="diaryEntriesContainer" class="diary-entries">
-            <!-- Rendered by JavaScript -->
+            <div class="diary-empty">Loading entries...</div>
           </div>
-          <div class="folder-tags">
-            <span>reflections</span>
-            <span>project logs</span>
-            <span>random thoughts</span>
+          <div style="margin-top: 12px;">
+            <a href="/blog" class="diary-view-all">View all entries →</a>
           </div>
         </div>
       `;
@@ -673,27 +704,36 @@
         const entries = data.entries || [];
         const container = document.getElementById('diaryEntriesContainer');
         if (!container) return;
+
         if (entries.length === 0) {
           container.innerHTML = `<div class="diary-empty">No entries yet. Check back later.</div>`;
           return;
         }
-        container.innerHTML = entries.map(e => {
-          const rendered = marked.parse(e.content || '');
-          const entryUrl = e.link || `/entry/${e.id}`;
-          return `
-            <div class="diary-entry" data-id="${e.id}">
-              ${e.title ? `<div class="entry-title"><a href="${entryUrl}">${escapeHtml(e.title)}</a></div>` : `<div class="entry-title"><a href="${entryUrl}">Untitled</a></div>`}
-              ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="entry-image" alt="" />` : ''}
-              <div class="entry-content">${rendered}</div>
-              <div class="entry-meta">
-                ${e.link ? `<a href="${escapeHtml(e.link)}" target="_blank">🔗 Custom Link</a>` : ''}
-                <span>${formatTimeAgo(e.timestamp)}</span>
-                <a href="${entryUrl}">🔗 Permalink</a>
-              </div>
+
+        // ─── Only show the most recent entry ───
+        const latest = entries[0];
+        const rendered = marked.parse(latest.content || '');
+        const entryUrl = latest.link && latest.link.trim() !== '' ? latest.link : `/entry/${latest.id}`;
+
+        container.innerHTML = `
+          <div class="diary-entry" data-id="${latest.id}">
+            ${latest.title ? `<div class="entry-title"><a href="${entryUrl}">${escapeHtml(latest.title)}</a></div>` : `<div class="entry-title"><a href="${entryUrl}">Untitled</a></div>`}
+            ${latest.image_url ? `<img src="${escapeHtml(latest.image_url)}" class="entry-image" alt="" />` : ''}
+            <div class="entry-content">${rendered}</div>
+            <div class="entry-meta">
+              ${latest.link ? `<a href="${escapeHtml(latest.link)}" target="_blank">🔗 Custom Link</a>` : ''}
+              <span>${formatTimeAgo(latest.timestamp)}</span>
+              <a href="${entryUrl}">🔗 Permalink</a>
             </div>
-          `;
-        }).join('');
-      } catch (e) { console.warn('Diary fetch error:', e); }
+          </div>
+        `;
+      } catch (e) {
+        console.warn('Diary fetch error:', e);
+        const container = document.getElementById('diaryEntriesContainer');
+        if (container) {
+          container.innerHTML = `<div class="diary-empty">Could not load entries. Please try again later.</div>`;
+        }
+      }
     }
 
     async function fetchReviews() {
