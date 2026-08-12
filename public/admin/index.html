@@ -45,7 +45,6 @@
 
     .container { max-width: 860px; width: 100%; }
 
-    /* ─── Fix: Prevent visited links from turning purple ─── */
     a, a:link, a:visited {
       color: var(--accent);
       text-decoration: none;
@@ -495,10 +494,9 @@
 
     .entry-item .entry-actions {
       display: flex;
-      flex-wrap: wrap;
       gap: 8px;
       margin-top: 4px;
-      align-items: center;
+      flex-wrap: wrap;
     }
 
     .flex-row {
@@ -636,7 +634,6 @@
       .card .reorder-controls { position: static; justify-content: flex-end; margin-top: 8px; }
       .diary-modal-content { padding: 16px; }
       .entry-item .entry-header { flex-direction: column; align-items: flex-start; }
-      .entry-item .entry-actions { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -676,12 +673,11 @@
       const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
     }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+    function formatExact(date) {
+      return new Date(date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
+
+    function getStatus(key) { return statuses[key] || null; }
 
     function showFlash(message, type = 'success') {
       flashContainer.innerHTML = `<div class="flash flash-${type}">${message}</div>`;
@@ -691,6 +687,18 @@
     function getUrl(endpoint) {
       const sep = endpoint.includes('?') ? '&' : '?';
       return `${endpoint}${sep}_=${Date.now()}`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ─── Safe JSON stringifier for HTML attributes ──────────
+    function safeJsonStringify(obj) {
+      return JSON.stringify(obj).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
     // ─── API CALLS ──────────────────────────────────────────
@@ -838,43 +846,7 @@
     }
 
     // ─── DIARY ──────────────────────────────────────────────
-    // ─── Modal: open with entry object or null ─────────────
-    function openDiaryModal(entry = null) {
-      const isEdit = entry !== null;
-      const data = entry || { id: null, title: '', content: '', link: '', image_url: '', scheduled_at: '' };
-
-      const existing = document.getElementById('diaryModal');
-      if (existing) existing.remove();
-
-      const modalHtml = `
-        <div id="diaryModal" class="diary-modal">
-          <div class="diary-modal-content">
-            <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
-            <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
-            <textarea id="diaryContent" placeholder="Content (supports Markdown)…">${escapeHtml(data.content)}</textarea>
-            <input type="text" id="diaryLink" placeholder="Custom link (optional) — overrides default /entry/:id" value="${escapeHtml(data.link)}" />
-            <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" />
-            <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0, 16) : ''}" />
-            <div class="modal-actions">
-              <button class="btn" onclick="closeDiaryModal()">Cancel</button>
-              <button class="btn btn-accent" onclick="saveDiaryEntry(${isEdit ? data.id : 'null'})">${isEdit ? 'Update' : 'Save'}</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
-
-    window.openDiaryModal = openDiaryModal;
-
-    function closeDiaryModal() {
-      const modal = document.getElementById('diaryModal');
-      if (modal) modal.remove();
-    }
-    window.closeDiaryModal = closeDiaryModal;
-
-    // ─── Save entry (create or update) ─────────────────────
-    async function saveDiaryEntry(id = null) {
+    window.saveDiaryEntry = async function(id) {
       const title = document.getElementById('diaryTitle').value.trim();
       const content = document.getElementById('diaryContent').value.trim();
       const link = document.getElementById('diaryLink').value.trim();
@@ -908,10 +880,40 @@
       } catch (e) {
         showFlash(e.message, 'error');
       }
-    }
-    window.saveDiaryEntry = saveDiaryEntry;
+    };
 
-    // ─── Delete entry ───────────────────────────────────────
+    // Make openDiaryModal globally accessible for onclick handlers
+    window.openDiaryModal = function(entry = null) {
+      const isEdit = entry !== null;
+      const data = entry || { id: null, title: '', content: '', link: '', image_url: '', scheduled_at: '' };
+
+      const existing = document.getElementById('diaryModal');
+      if (existing) existing.remove();
+
+      const modalHtml = `
+        <div id="diaryModal" class="diary-modal">
+          <div class="diary-modal-content">
+            <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
+            <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
+            <textarea id="diaryContent" placeholder="Content (supports Markdown)…">${escapeHtml(data.content)}</textarea>
+            <input type="text" id="diaryLink" placeholder="Custom link (optional) — overrides default /entry/:id" value="${escapeHtml(data.link)}" />
+            <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" />
+            <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0, 16) : ''}" />
+            <div class="modal-actions">
+              <button class="btn" onclick="closeDiaryModal()">Cancel</button>
+              <button class="btn btn-accent" onclick="window.saveDiaryEntry(${isEdit ? data.id : 'null'})">${isEdit ? 'Update' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    };
+
+    window.closeDiaryModal = function() {
+      const modal = document.getElementById('diaryModal');
+      if (modal) modal.remove();
+    };
+
     async function deleteDiaryEntry(id) {
       if (!confirm('Delete this entry?')) return;
       try {
@@ -1011,6 +1013,7 @@
       localStorage.setItem('sectionOrder', JSON.stringify(sectionOrder));
       renderContent();
     }
+
     window.moveSection = moveSection;
 
     // ─── Authentication ─────────────────────────────────────
@@ -1133,26 +1136,13 @@
         }
       }
       mainContent.innerHTML = html;
-
-      // ─── Attach event listeners for diary edit buttons ───
-      document.querySelectorAll('.entry-edit-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          const id = parseInt(this.dataset.entryId);
-          const entry = entries.find(e => e.id === id);
-          if (entry) {
-            openDiaryModal(entry);
-          } else {
-            showFlash('Entry not found', 'error');
-          }
-        });
-      });
     }
 
     // ─── Section builders ────────────────────────────────────
     function buildStatusCard() {
-      const drinks = statuses.drinks || null;
-      const activity = statuses.activity || null;
-      const mood = statuses.mood || null;
+      const drinks = getStatus('drinks');
+      const activity = getStatus('activity');
+      const mood = getStatus('mood');
       return `
         <div class="card">
           <h2>📊 Current Status <span class="badge-count">${new Date().toLocaleDateString()}</span></h2>
@@ -1269,19 +1259,21 @@
     }
 
     function buildDiaryCard() {
-      if (entries.length === 0) {
-        return `
-          <div class="card">
-            <h2>📖 Diary Entries</h2>
-            <button class="btn btn-accent" onclick="openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
-            <div class="empty-entries">No diary entries.</div>
-          </div>
-        `;
-      }
-
-      const diaryList = entries.map(e => {
+      const diaryList = entries.length ? entries.map(e => {
+        // Determine the correct link: custom link if set, otherwise /entry/:id
         const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
         const linkLabel = e.link && e.link.trim() !== '' ? '🔗 Custom Link' : '🔗 Permalink';
+
+        // Escape the entry data for the modal using safeJsonStringify
+        const entryData = {
+          id: e.id,
+          title: e.title || '',
+          content: e.content || '',
+          link: e.link || '',
+          image_url: e.image_url || '',
+          scheduled_at: e.scheduled_at || ''
+        };
+        const entryJson = safeJsonStringify(entryData);
 
         return `
           <div class="entry-item">
@@ -1299,17 +1291,17 @@
               <span>${formatTimeAgo(e.timestamp)}</span>
             </div>
             <div class="entry-actions">
-              <button class="btn btn-sm entry-edit-btn" data-entry-id="${e.id}">✎ Edit</button>
+              <button class="btn btn-sm" onclick="window.openDiaryModal(${entryJson})">✎ Edit</button>
               <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteDiaryEntry(${e.id})">✕ Delete</button>
             </div>
           </div>
         `;
-      }).join('');
+      }).join('') : `<div class="empty-entries">No diary entries.</div>`;
 
       return `
         <div class="card">
           <h2>📖 Diary Entries</h2>
-          <button class="btn btn-accent" onclick="openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
+          <button class="btn btn-accent" onclick="window.openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
           <div class="entry-list">${diaryList}</div>
         </div>
       `;
