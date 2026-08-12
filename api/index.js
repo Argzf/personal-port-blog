@@ -20,7 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Statuses
+  // Create statuses table
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,20 +64,36 @@ async function initDatabase() {
       is_admin INTEGER DEFAULT 0
     )
   `);
-  // Entries (diary) – this table is critical
+  
+  // ─── Entries table – with safe column migration ──────
+  // 1. Create base table if missing (with core columns)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
       content TEXT NOT NULL,
-      link TEXT,
-      image_url TEXT,
-      scheduled_at INTEGER,
-      published INTEGER DEFAULT 0,
       timestamp INTEGER NOT NULL,
       date TEXT
     )
   `);
+  
+  // 2. Add missing columns one by one (ignore errors if already exist)
+  const columnsToAdd = [
+    { name: 'title', type: 'TEXT' },
+    { name: 'link', type: 'TEXT' },
+    { name: 'image_url', type: 'TEXT' },
+    { name: 'scheduled_at', type: 'INTEGER' },
+    { name: 'published', type: 'INTEGER DEFAULT 0' },
+  ];
+  for (const col of columnsToAdd) {
+    try {
+      await turso.execute(`ALTER TABLE entries ADD COLUMN ${col.name} ${col.type}`);
+      console.log(`[DB] Added column: ${col.name}`);
+    } catch (e) {
+      // Column likely already exists – ignore
+      console.log(`[DB] Column ${col.name} already exists (or error):`, e.message);
+    }
+  }
+
   // Silence logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS silence_logs (
