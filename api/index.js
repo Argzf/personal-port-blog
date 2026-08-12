@@ -20,6 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
+  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +32,7 @@ async function initDatabase() {
       UNIQUE(key, date)
     )
   `);
+  // Notes
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,6 +42,7 @@ async function initDatabase() {
       date TEXT
     )
   `);
+  // Blacklist
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +51,7 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
+  // Request logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +64,7 @@ async function initDatabase() {
       is_admin INTEGER DEFAULT 0
     )
   `);
+  // Entries (diary) – this table is critical
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +78,7 @@ async function initDatabase() {
       date TEXT
     )
   `);
+  // Silence logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS silence_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,6 +87,7 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
+  // Reviews
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS reviews (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -474,78 +481,110 @@ app.get('/api/public-notes', async (req, res) => {
   res.json({ notes: active });
 });
 
-// ─── Diary entries ──────────────────────────────────────
+// ─── Diary entries (FIXED) ──────────────────────────────
 app.get('/api/entries', authMiddleware, async (req, res) => {
-  const now = Date.now();
-  const result = await turso.execute({
-    sql: `SELECT id, title, content, link, image_url, scheduled_at, published, timestamp 
-          FROM entries 
-          WHERE published = 1 OR (scheduled_at IS NULL OR scheduled_at <= ?)
-          ORDER BY timestamp DESC LIMIT 50`,
-    args: [now],
-  });
-  res.json({ entries: result.rows });
+  try {
+    const now = Date.now();
+    const result = await turso.execute({
+      sql: `SELECT id, title, content, link, image_url, scheduled_at, published, timestamp 
+            FROM entries 
+            WHERE published = 1 OR (scheduled_at IS NULL OR scheduled_at <= ?)
+            ORDER BY timestamp DESC LIMIT 50`,
+      args: [now],
+    });
+    res.json({ entries: result.rows });
+  } catch (error) {
+    console.error('[Diary] GET /api/entries error:', error);
+    res.status(500).json({ error: 'Failed to fetch diary entries' });
+  }
 });
 
 app.post('/api/entries', authMiddleware, async (req, res) => {
-  const { title, content, link, image_url, scheduled_at } = req.body;
-  if (!content || content.trim().length === 0) {
-    return res.status(400).json({ error: 'Content is required' });
+  try {
+    const { title, content, link, image_url, scheduled_at } = req.body;
+    console.log('[Diary] POST /api/entries called with:', { title, content: content?.slice(0, 30), scheduled_at });
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Content is required' });
+    }
+
+    const now = Date.now();
+    const date = getTehranDate();
+    let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+    const published = (scheduled && scheduled > now) ? 0 : 1;
+    if (!scheduled) scheduled = null;
+
+    const result = await turso.execute({
+      sql: `INSERT INTO entries (title, content, link, image_url, scheduled_at, published, timestamp, date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, now, date],
+    });
+
+    console.log('[Diary] Insert successful, row id:', result.lastInsertRowid);
+
+    await logAction('Diary Entry Added', { title: title || 'Untitled' }, req, 200);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Diary] Error in POST /api/entries:', error);
+    res.status(500).json({ error: 'Failed to create diary entry: ' + error.message });
   }
-  const now = Date.now();
-  const date = getTehranDate();
-  let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
-  const published = (scheduled && scheduled > now) ? 0 : 1;
-  if (!scheduled) scheduled = null;
-  await turso.execute({
-    sql: `INSERT INTO entries (title, content, link, image_url, scheduled_at, published, timestamp, date) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, now, date],
-  });
-  await logAction('Diary Entry Added', { title: title || 'Untitled' }, req, 200);
-  res.json({ success: true });
 });
 
 app.put('/api/entries/:id', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  const { title, content, link, image_url, scheduled_at } = req.body;
-  if (!content || content.trim().length === 0) {
-    return res.status(400).json({ error: 'Content is required' });
+  try {
+    const { id } = req.params;
+    const { title, content, link, image_url, scheduled_at } = req.body;
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: 'Content is required' });
+    }
+    const now = Date.now();
+    let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
+    const published = (scheduled && scheduled > now) ? 0 : 1;
+    if (!scheduled) scheduled = null;
+    await turso.execute({
+      sql: `UPDATE entries 
+            SET title = ?, content = ?, link = ?, image_url = ?, scheduled_at = ?, published = ? 
+            WHERE id = ?`,
+      args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, id],
+    });
+    await logAction('Diary Entry Edited', { id, title: title || 'Untitled' }, req, 200);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Diary] PUT /api/entries/:id error:', error);
+    res.status(500).json({ error: 'Failed to update diary entry' });
   }
-  const now = Date.now();
-  let scheduled = scheduled_at ? parseInt(scheduled_at) : null;
-  const published = (scheduled && scheduled > now) ? 0 : 1;
-  if (!scheduled) scheduled = null;
-  await turso.execute({
-    sql: `UPDATE entries 
-          SET title = ?, content = ?, link = ?, image_url = ?, scheduled_at = ?, published = ? 
-          WHERE id = ?`,
-    args: [title || '', content.trim(), link || '', image_url || '', scheduled, published, id],
-  });
-  await logAction('Diary Entry Edited', { id, title: title || 'Untitled' }, req, 200);
-  res.json({ success: true });
 });
 
 app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  await turso.execute({
-    sql: 'DELETE FROM entries WHERE id = ?',
-    args: [id],
-  });
-  await logAction('Diary Entry Deleted', { id }, req, 200);
-  res.json({ success: true });
+  try {
+    const { id } = req.params;
+    await turso.execute({
+      sql: 'DELETE FROM entries WHERE id = ?',
+      args: [id],
+    });
+    await logAction('Diary Entry Deleted', { id }, req, 200);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Diary] DELETE /api/entries/:id error:', error);
+    res.status(500).json({ error: 'Failed to delete diary entry' });
+  }
 });
 
 app.get('/api/public-entries', async (req, res) => {
-  const now = Date.now();
-  const result = await turso.execute({
-    sql: `SELECT id, title, content, link, image_url, timestamp 
-          FROM entries 
-          WHERE published = 1 AND (scheduled_at IS NULL OR scheduled_at <= ?)
-          ORDER BY timestamp DESC LIMIT 10`,
-    args: [now],
-  });
-  res.json({ entries: result.rows });
+  try {
+    const now = Date.now();
+    const result = await turso.execute({
+      sql: `SELECT id, title, content, link, image_url, timestamp 
+            FROM entries 
+            WHERE published = 1 AND (scheduled_at IS NULL OR scheduled_at <= ?)
+            ORDER BY timestamp DESC LIMIT 10`,
+      args: [now],
+    });
+    res.json({ entries: result.rows });
+  } catch (error) {
+    console.error('[Diary] GET /api/public-entries error:', error);
+    res.status(500).json({ error: 'Failed to fetch public entries' });
+  }
 });
 
 // ─── Silence logs ──────────────────────────────────────
