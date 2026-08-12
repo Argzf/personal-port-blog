@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entry · Arsan's Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --board-bg: #2C1E16; --board-grid: rgba(60,40,30,0.3);
+      --card-bg: #FBF6ED; --card-border: #D6C8B8;
+      --ink: #1E1814; --ink-light: #4A3F38;
+      --red-string: #B84A3A; --thumbtack: #C0392B;
+      --shadow: rgba(0,0,0,0.5); --tag-bg: rgba(30,24,20,0.08);
+      --accent: #B84A3A;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-serif: 'DM Serif Display', serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --board-bg: #1A1410; --board-grid: rgba(50,40,35,0.4);
+        --card-bg: #28201B; --card-border: #3A322C;
+        --ink: #EDE4D6; --ink-light: #A89888;
+        --red-string: #D4875E;
+        --accent: #D4875E;
+      }
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--board-bg);
+      color: var(--ink);
+      line-height: 1.6;
+      padding: clamp(16px,4vw,40px);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(60,40,30,0.2) 0%, transparent 60%),
+        repeating-linear-gradient(0deg, var(--board-grid) 0px, var(--board-grid) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(90deg, var(--board-grid) 0px, var(--board-grid) 1px, transparent 1px, transparent 40px);
+      background-size: 100% 100%, 100% 100%, 100% 100%;
+    }
+    .container { max-width: 860px; width: 100%; }
+
+    .header {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--card-border);
+    }
+    .header h1 {
+      font-family: var(--font-serif); font-size: 1.8rem; font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+    .header .back-link {
+      color: var(--accent); text-decoration: none;
+      font-family: var(--font-mono); font-size: 0.8rem;
+    }
+    .header .back-link:hover { text-decoration: underline; }
+
+    .entry-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .entry-content .title {
+      font-family: var(--font-serif); font-size: 1.8rem; font-weight: 400;
+      margin-bottom: 4px;
+    }
+    .entry-content .meta {
+      font-size: 0.7rem; color: var(--ink-light);
+      font-family: var(--font-mono); opacity: 0.6;
+      margin-bottom: 16px;
+    }
+    .entry-content .body {
+      font-size: 1rem; line-height: 1.8;
+    }
+    .entry-content .body p { margin: 0.8em 0; }
+    .entry-content .body a { color: var(--accent); text-decoration: underline; }
+    .entry-content .body img { max-width: 100%; border-radius: 4px; margin: 0.5em 0; }
+    .entry-content .body h1, .entry-content .body h2, .entry-content .body h3 {
+      font-family: var(--font-serif); font-weight: 400;
+      margin: 1em 0 0.5em;
+    }
+    .entry-content .body blockquote {
+      border-left: 3px solid var(--red-string);
+      padding-left: 16px;
+      opacity: 0.8;
+      margin: 0.8em 0;
+    }
+    .entry-content .body ul, .entry-content .body ol {
+      padding-left: 24px;
+      margin: 0.5em 0;
+    }
+
+    .loading, .not-found {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--ink-light);
+      opacity: 0.5;
+      font-size: 1.1rem;
+    }
+
+    .footer {
+      margin-top: 24px; padding-top: 16px;
+      border-top: 1px solid var(--card-border);
+      text-align: center;
+      color: var(--ink-light); font-size: 0.65rem;
+      font-family: var(--font-mono); opacity: 0.4;
+    }
+
+    @media (max-width: 600px) {
+      .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .header h1 { font-size: 1.4rem; }
+      .entry-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <h1>Entry</h1>
+      </div>
+      <a href="/blog" class="back-link">← back to blog</a>
+    </header>
+
+    <div id="entryContainer" class="entry-content">
+      <div class="loading">Loading entry...</div>
+    </div>
+
+    <footer class="footer">Arsan's Archive · entry</footer>
+  </div>
+
+  <script>
+    function formatTimeAgo(date) {
+      const diff = (Date.now() - date) / 1000;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) { const m = Math.floor(diff / 60); return m + 'm' + (m > 1 ? 's' : '') + ' ago'; }
+      if (diff < 86400) { const h = Math.floor(diff / 3600); return h + 'h' + (h > 1 ? 's' : '') + ' ago'; }
+      const d = Math.floor(diff / 86400); return d + 'd' + (d > 1 ? 's' : '') + ' ago';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function fetchEntry() {
+      const path = window.location.pathname;
+      const idMatch = path.match(/\/entry\/(\d+)/);
+      if (!idMatch) {
+        document.getElementById('entryContainer').innerHTML =
+          `<div class="not-found">Invalid entry ID.</div>`;
+        return;
+      }
+      const id = idMatch[1];
+
+      try {
+        const res = await fetch('/api/public-entries', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch entries');
+        const data = await res.json();
+        const entries = data.entries || [];
+        const entry = entries.find(e => e.id == id);
+
+        if (!entry) {
+          document.getElementById('entryContainer').innerHTML =
+            `<div class="not-found">Entry not found.</div>`;
+          return;
+        }
+
+        const rendered = marked.parse(entry.content || '');
+
+        document.getElementById('entryContainer').innerHTML = `
+          ${entry.image_url ? `<img src="${escapeHtml(entry.image_url)}" style="max-width:100%; max-height:300px; object-fit:cover; border-radius:4px; margin-bottom:16px;" alt="" />` : ''}
+          <div class="title">${escapeHtml(entry.title || 'Untitled')}</div>
+          <div class="meta">${formatTimeAgo(entry.timestamp)}${entry.link ? ` · <a href="${escapeHtml(entry.link)}" target="_blank" style="color:var(--accent); text-decoration:none;">🔗 Link</a>` : ''}</div>
+          <div class="body">${rendered}</div>
+        `;
+      } catch (e) {
+        console.error('Error fetching entry:', e);
+        document.getElementById('entryContainer').innerHTML =
+          `<div class="not-found">Could not load entry. Please try again later.</div>`;
+      }
+    }
+
+    fetchEntry();
+  </script>
+</body>
+</html>

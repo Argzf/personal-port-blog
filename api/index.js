@@ -20,7 +20,7 @@ const turso = createClient({
 });
 
 async function initDatabase() {
-  // Create statuses table
+  // Statuses
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS statuses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +51,7 @@ async function initDatabase() {
       created_at INTEGER
     )
   `);
-  // Request logs
+  // Request logs – migration to add status_code
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS request_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,36 +64,24 @@ async function initDatabase() {
       is_admin INTEGER DEFAULT 0
     )
   `);
-  
-  // ─── Entries table – with safe column migration ──────
-  // 1. Create base table if missing (with core columns)
+  // Add status_code column if missing (for existing tables)
+  try {
+    await turso.execute(`ALTER TABLE request_logs ADD COLUMN status_code INTEGER`);
+  } catch (e) {}
+  // Entries (diary)
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT,
       content TEXT NOT NULL,
+      link TEXT,
+      image_url TEXT,
+      scheduled_at INTEGER,
+      published INTEGER DEFAULT 0,
       timestamp INTEGER NOT NULL,
       date TEXT
     )
   `);
-  
-  // 2. Add missing columns one by one (ignore errors if already exist)
-  const columnsToAdd = [
-    { name: 'title', type: 'TEXT' },
-    { name: 'link', type: 'TEXT' },
-    { name: 'image_url', type: 'TEXT' },
-    { name: 'scheduled_at', type: 'INTEGER' },
-    { name: 'published', type: 'INTEGER DEFAULT 0' },
-  ];
-  for (const col of columnsToAdd) {
-    try {
-      await turso.execute(`ALTER TABLE entries ADD COLUMN ${col.name} ${col.type}`);
-      console.log(`[DB] Added column: ${col.name}`);
-    } catch (e) {
-      // Column likely already exists – ignore
-      console.log(`[DB] Column ${col.name} already exists (or error):`, e.message);
-    }
-  }
-
   // Silence logs
   await turso.execute(`
     CREATE TABLE IF NOT EXISTS silence_logs (
@@ -497,7 +485,7 @@ app.get('/api/public-notes', async (req, res) => {
   res.json({ notes: active });
 });
 
-// ─── Diary entries (FIXED) ──────────────────────────────
+// ─── Diary entries ──────────────────────────────────────
 app.get('/api/entries', authMiddleware, async (req, res) => {
   try {
     const now = Date.now();
@@ -586,6 +574,7 @@ app.delete('/api/entries/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// ─── Public diary routes ──────────────────────────────
 app.get('/api/public-entries', async (req, res) => {
   try {
     const now = Date.now();
@@ -723,6 +712,15 @@ app.get('/admin', (req, res) => {
 });
 app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+});
+
+// ─── Blog routes ──────────────────────────────────────────
+app.get('/blog', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/blog.html'));
+});
+
+app.get('/entry/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/entry.html'));
 });
 
 app.get('*', (req, res) => {
