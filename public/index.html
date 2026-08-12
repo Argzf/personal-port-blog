@@ -34,7 +34,6 @@
         --accent: #D4875E;
       }
     }
-    /* ─── Fix: Prevent visited links from turning purple ─── */
     a, a:link, a:visited {
       color: var(--red-string);
       text-decoration: none;
@@ -575,7 +574,6 @@
       `;
     }
 
-    // ─── Diary Section: Only the most recent entry ─────────
     function buildDiarySection() {
       return `
         <div class="diary-folder">
@@ -710,10 +708,11 @@
           return;
         }
 
-        // ─── Only show the most recent entry ───
+        // ─── Only the most recent entry ───
         const latest = entries[0];
         const rendered = marked.parse(latest.content || '');
-        const entryUrl = latest.link && latest.link.trim() !== '' ? latest.link : `/entry/${latest.id}`;
+        // ─── FIXED: custom link is prefixed with /entry/ ───
+        const entryUrl = latest.link && latest.link.trim() !== '' ? `/entry/${latest.link}` : `/entry/${latest.id}`;
 
         container.innerHTML = `
           <div class="diary-entry" data-id="${latest.id}">
@@ -721,7 +720,7 @@
             ${latest.image_url ? `<img src="${escapeHtml(latest.image_url)}" class="entry-image" alt="" />` : ''}
             <div class="entry-content">${rendered}</div>
             <div class="entry-meta">
-              ${latest.link ? `<a href="${escapeHtml(latest.link)}" target="_blank">🔗 Custom Link</a>` : ''}
+              ${latest.link ? `<a href="${entryUrl}" target="_blank">🔗 Custom Link</a>` : ''}
               <span>${formatTimeAgo(latest.timestamp)}</span>
               <a href="${entryUrl}">🔗 Permalink</a>
             </div>

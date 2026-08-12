@@ -28,7 +28,6 @@
         --red-string: #D4875E; --accent: #D4875E;
       }
     }
-    /* ─── Fix: Prevent visited links from turning purple ─── */
     a, a:link, a:visited {
       color: var(--accent);
       text-decoration: none;
@@ -178,8 +177,8 @@
 
         container.innerHTML = entries.map(e => {
           const preview = (e.content || '').slice(0, 160) + ((e.content || '').length > 160 ? '...' : '');
-          // Use custom link if set, otherwise /entry/:id
-          const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
+          // ─── FIXED: custom link is prefixed with /entry/ ───
+          const entryLink = e.link && e.link.trim() !== '' ? `/entry/${e.link}` : `/entry/${e.id}`;
 
           return `
             <div class="entry-preview">

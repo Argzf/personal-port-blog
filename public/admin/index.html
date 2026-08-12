@@ -896,7 +896,7 @@
             <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
             <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
             <textarea id="diaryContent" placeholder="Content (supports Markdown)…">${escapeHtml(data.content)}</textarea>
-            <input type="text" id="diaryLink" placeholder="Custom link (optional) — overrides default /entry/:id" value="${escapeHtml(data.link)}" />
+            <input type="text" id="diaryLink" placeholder="Custom link (optional) — will be /entry/{value}" value="${escapeHtml(data.link)}" />
             <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" />
             <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0, 16) : ''}" />
             <div class="modal-actions">
@@ -1260,11 +1260,10 @@
 
     function buildDiaryCard() {
       const diaryList = entries.length ? entries.map(e => {
-        // Determine the correct link: custom link if set, otherwise /entry/:id
-        const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
+        // ─── FIXED: custom link is prefixed with /entry/ ───
+        const entryLink = e.link && e.link.trim() !== '' ? `/entry/${e.link}` : `/entry/${e.id}`;
         const linkLabel = e.link && e.link.trim() !== '' ? '🔗 Custom Link' : '🔗 Permalink';
 
-        // Escape the entry data for the modal using safeJsonStringify
         const entryData = {
           id: e.id,
           title: e.title || '',

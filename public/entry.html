@@ -29,7 +29,6 @@
         --red-string: #D4875E; --accent: #D4875E;
       }
     }
-    /* ─── Fix: Prevent visited links from turning purple ─── */
     a, a:link, a:visited {
       color: var(--accent);
       text-decoration: underline;
@@ -187,9 +186,8 @@
 
         const rendered = marked.parse(entry.content || '');
 
-        // If the entry has a custom link, show it; otherwise just show the date
         const customLinkHtml = entry.link && entry.link.trim() !== ''
-          ? ` · <a href="${escapeHtml(entry.link)}" target="_blank">🔗 Custom Link</a>`
+          ? ` · <a href="/entry/${escapeHtml(entry.link)}" target="_blank">🔗 Custom Link</a>`
           : '';
 
         document.getElementById('entryContainer').innerHTML = `
