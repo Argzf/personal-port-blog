@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    /* ── same as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --board-bg: #2C1E16; --board-grid: rgba(60,40,30,0.3);
@@ -20,7 +19,8 @@
       --shadow: rgba(0,0,0,0.5); --tag-bg: rgba(30,24,20,0.08);
       --accent: #B84A3A;
       --font-body: 'Inter', system-ui, sans-serif;
-      --font-hand: 'Kalam', cursive; --font-mono: 'JetBrains Mono', monospace;
+      --font-hand: 'Kalam', cursive;
+      --font-mono: 'JetBrains Mono', monospace;
       --font-serif: 'DM Serif Display', serif;
     }
     @media (prefers-color-scheme: dark) {
@@ -37,11 +37,13 @@
     html { font-size: 16px; }
     body {
       font-family: var(--font-body);
-      background: var(--board-bg); color: var(--ink);
+      background: var(--board-bg);
+      color: var(--ink);
       line-height: 1.6;
       padding: clamp(16px,4vw,40px);
       min-height: 100vh;
-      display: flex; justify-content: center;
+      display: flex;
+      justify-content: center;
       background-image:
         radial-gradient(circle at 20% 50%, rgba(60,40,30,0.2) 0%, transparent 60%),
         repeating-linear-gradient(0deg, var(--board-grid) 0px, var(--board-grid) 1px, transparent 1px, transparent 40px),
@@ -50,7 +52,6 @@
     }
     .container { max-width: 860px; width: 100%; }
 
-    /* ── header ── */
     .board-header {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       margin-bottom: 24px; padding: clamp(12px,2vw,20px) clamp(16px,2.5vw,24px);
@@ -92,7 +93,6 @@
 
     .board-content { display: flex; flex-direction: column; gap: clamp(18px,3vw,28px); }
 
-    /* ── polaroid grid ── */
     .polaroid-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,180px),1fr));
       gap: clamp(20px,3vw,32px) clamp(16px,2vw,24px);
@@ -150,7 +150,6 @@
       letter-spacing: 0.04em; padding: 1px 8px; border-radius: 1px; opacity: 0.7; text-transform: uppercase;
     }
 
-    /* ── subject profile ── */
     .subject-profile {
       background: var(--card-bg); border: 1px solid var(--card-border);
       padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
@@ -180,7 +179,6 @@
     }
     .subject-profile .tags .tag.accent { border-color: var(--red-string); color: var(--red-string); }
 
-    /* ── sticky notes ── */
     .sticky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(16px,2.5vw,24px); }
     .sticky {
       background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
@@ -200,7 +198,6 @@
     .sticky ul li .dot { color: var(--red-string); font-weight: 700; font-size: 0.6rem; }
     .sticky ul li em { font-style: italic; opacity: 0.7; }
 
-    /* ── diary folder (base) ── */
     .diary-folder {
       background: var(--card-bg); border: 1px solid var(--card-border);
       padding: clamp(16px,2.5vw,24px); box-shadow: 0 8px 20px var(--shadow);
@@ -243,19 +240,6 @@
     }
     .diary-entry .entry-actions .btn-sm:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
 
-    /* ── quote button ── */
-    #quoteButton {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--red-string); color: var(--card-bg);
-      border: none; border-radius: 50px; padding: 10px 18px;
-      font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 1000;
-      transition: transform 0.15s, opacity 0.15s; display: none;
-      align-items: center; gap: 6px;
-    }
-    #quoteButton:hover { transform: scale(1.05); }
-
-    /* ── sticky note container ── */
     .sticky-note-container {
       background: var(--sticky-yellow); border: 1px solid var(--sticky-border);
       border-radius: 6px; padding: 14px 16px;
@@ -272,7 +256,6 @@
       float: right;
     }
 
-    /* ── review carousel ── */
     .review-carousel {
       position: relative;
       overflow: hidden;
@@ -288,40 +271,21 @@
       animation: fadeIn 0.5s;
     }
     .review-slide.active { display: block; }
-    .review-slide .review-name {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--red-string);
-      margin-top: 4px;
-    }
+    .review-slide .review-name { font-size: 0.7rem; font-weight: 600; color: var(--red-string); margin-top: 4px; }
     .review-slide .review-message { font-size: 0.95rem; margin: 4px 0; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .carousel-dots {
-      display: flex; justify-content: center; gap: 6px; margin-top: 12px;
-    }
-    .carousel-dots .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--card-border);
-      cursor: pointer; transition: 0.2s;
-    }
+    .carousel-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+    .carousel-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--card-border); cursor: pointer; transition: 0.2s; }
     .carousel-dots .dot.active { background: var(--red-string); }
 
-    .folder-tags {
-      display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 8px;
-    }
+    .folder-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
     .folder-tags span {
-      font-family: var(--font-mono);
-      font-size: clamp(0.5rem,0.9vw,0.6rem);
-      letter-spacing: 0.04em;
-      background: var(--tag-bg);
-      border: 1px solid var(--card-border);
-      padding: 1px 12px;
-      border-radius: 2px;
-      color: var(--ink-light);
+      font-family: var(--font-mono); font-size: clamp(0.5rem,0.9vw,0.6rem);
+      letter-spacing: 0.04em; background: var(--tag-bg); border: 1px solid var(--card-border);
+      padding: 1px 12px; border-radius: 2px; color: var(--ink-light);
     }
 
-    /* ── footer ── */
     .footer {
       margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--card-border);
       text-align: center;
@@ -362,7 +326,6 @@
 </head>
 <body>
   <div class="container">
-    <!-- ─── HEADER ─── -->
     <div class="board-header">
       <div>
         <div class="badge">🕵️ active investigation</div>
@@ -374,12 +337,10 @@
       <div class="red-string-decoration"></div>
     </div>
 
-    <!-- ─── CONTENT CONTAINER ─── -->
     <div class="board-content" id="homeContent">
-      <!-- The sections will be reordered by JavaScript -->
+      <!-- Sections reordered by JavaScript -->
     </div>
 
-    <!-- ─── FOOTER ─── -->
     <footer class="footer">
       <div class="links">
         <a href="#" target="_blank">GitHub</a>
@@ -387,13 +348,11 @@
         <a href="#" target="_blank">LinkedIn</a>
         <a href="#" target="_blank">Email</a>
         <a href="#" target="_blank">RSS</a>
+        <a href="/blog" target="_blank">📖 Blog</a>
       </div>
       <div class="footer-note">Arsan's Archive · investigation board · case file 2026</div>
     </footer>
   </div>
-
-  <!-- Quote floating button -->
-  <button id="quoteButton" onclick="copyQuote()">📝 Quote</button>
 
   <script>
     // ─── Dynamic Age ────────────────────────────────────────
@@ -485,14 +444,12 @@
       return div.innerHTML;
     }
 
-    // ─── Section order (shared with admin) ────────────────
+    // ─── Section order ──────────────────────────────────────
     let sectionOrder = ['status', 'subject', 'reviews', 'notes', 'diary'];
-    // Load from localStorage if exists
     const stored = localStorage.getItem('sectionOrder');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Filter only those valid sections
         const valid = ['status', 'subject', 'reviews', 'notes', 'diary'];
         const filtered = parsed.filter(id => valid.includes(id));
         if (filtered.length === valid.length) {
@@ -501,9 +458,8 @@
       } catch {}
     }
 
-    // ─── Build homepage sections ────────────────────────────
+    // ─── Build sections ─────────────────────────────────────
     function buildStatusSection() {
-      // This will be populated by fetchStatuses later.
       return `
         <div style="position:relative;">
           <div style="font-family:var(--font-mono); font-size:clamp(0.5rem,0.9vw,0.55rem); text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-light); opacity:0.5; padding-left:8px; margin-bottom:4px;">
@@ -604,7 +560,6 @@
       `;
     }
 
-    // ─── Render homepage with current order ────────────────
     function renderHome() {
       const container = document.getElementById('homeContent');
       const sections = {
@@ -724,18 +679,16 @@
         }
         container.innerHTML = entries.map(e => {
           const rendered = marked.parse(e.content || '');
+          const entryUrl = e.link || `/entry/${e.id}`;
           return `
             <div class="diary-entry" data-id="${e.id}">
-              ${e.title ? `<div class="entry-title">${escapeHtml(e.title)}</div>` : ''}
+              ${e.title ? `<div class="entry-title"><a href="${entryUrl}">${escapeHtml(e.title)}</a></div>` : `<div class="entry-title"><a href="${entryUrl}">Untitled</a></div>`}
               ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="entry-image" alt="" />` : ''}
               <div class="entry-content">${rendered}</div>
               <div class="entry-meta">
-                ${e.link ? `<a href="${escapeHtml(e.link)}" target="_blank">🔗 Link</a>` : ''}
+                ${e.link ? `<a href="${escapeHtml(e.link)}" target="_blank">🔗 Custom Link</a>` : ''}
                 <span>${formatTimeAgo(e.timestamp)}</span>
-              </div>
-              <div class="entry-actions">
-                <button class="btn-sm" onclick="shareEntry('${e.id}', '${escapeHtml(e.title || 'Untitled')}', '${escapeHtml(e.content)}', '${escapeHtml(e.link || '')}')">🔗 Share</button>
-                <button class="btn-sm" onclick="quoteEntry('${e.id}', '${escapeHtml(e.content)}', '${escapeHtml(e.title || 'Untitled')}')">📝 Quote</button>
+                <a href="${entryUrl}">🔗 Permalink</a>
               </div>
             </div>
           `;
@@ -753,70 +706,13 @@
       } catch (e) { console.warn('Reviews fetch error:', e); }
     }
 
-    // ─── Share & Quote ──────────────────────────────────────
-    async function shareEntry(id, title, content, link) {
-      const url = window.location.href + (window.location.href.includes('?') ? '&' : '?') + `entry=${id}`;
-      const shareData = {
-        title: title || 'Diary Entry',
-        text: `${title ? title + '\n' : ''}${content.slice(0, 200)}${content.length > 200 ? '...' : ''}`,
-        url: link || url,
-      };
-      if (navigator.share) {
-        try { await navigator.share(shareData); } catch {}
-      } else {
-        try {
-          await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
-          alert('Link copied to clipboard!');
-        } catch {
-          prompt('Copy this link:', shareData.url);
-        }
-      }
-    }
-
-    function quoteEntry(id, content, title) {
-      const selection = window.getSelection();
-      let quoteText = '';
-      if (selection && selection.toString().trim()) {
-        quoteText = selection.toString().trim();
-      } else {
-        quoteText = content.slice(0, 300) + (content.length > 300 ? '...' : '');
-      }
-      window._quoteData = { id, content: quoteText, title };
-      const btn = document.getElementById('quoteButton');
-      btn.style.display = 'flex';
-      btn.textContent = `📝 Quote "${quoteText.slice(0, 40)}${quoteText.length > 40 ? '…' : ''}"`;
-      clearTimeout(window._quoteTimer);
-      window._quoteTimer = setTimeout(() => { btn.style.display = 'none'; }, 10000);
-    }
-
-    function copyQuote() {
-      const data = window._quoteData;
-      if (!data) return;
-      const quote = `“${data.content}”\n— ${data.title || 'Diary Entry'}\n${window.location.href}`;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(quote).then(() => {
-          alert('Quote copied!');
-        }).catch(() => {
-          prompt('Copy this quote:', quote);
-        });
-      } else {
-        prompt('Copy this quote:', quote);
-      }
-      document.getElementById('quoteButton').style.display = 'none';
-      window._quoteData = null;
-    }
-
     // ─── Init ────────────────────────────────────────────────
     async function init() {
-      // Build the page with sections ordered
       renderHome();
-
-      // Now fetch data
       await Promise.all([fetchStatuses(), fetchNotes(), fetchDiaryEntries(), fetchReviews()]);
       updateCaseAge();
       setTimeout(updateRedString, 100);
 
-      // Set up intervals
       setInterval(async () => {
         await fetchStatuses();
         updateRedString();
@@ -825,7 +721,6 @@
       setInterval(fetchDiaryEntries, 30000);
       setInterval(fetchReviews, 30000);
 
-      // Resize handler for red string
       let resizeTimer;
       function handleResize() {
         clearTimeout(resizeTimer);
@@ -840,14 +735,6 @@
       }
       setInterval(updateRedString, 2000);
 
-      // Hide quote button when clicking elsewhere
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('#quoteButton')) {
-          document.getElementById('quoteButton').style.display = 'none';
-        }
-      });
-
-      // Listen for storage changes to reorder sections if admin changes order
       window.addEventListener('storage', (e) => {
         if (e.key === 'sectionOrder') {
           try {
@@ -856,15 +743,10 @@
             const filtered = newOrder.filter(id => valid.includes(id));
             if (filtered.length === valid.length) {
               sectionOrder = filtered;
-              // Re-render the page without losing data
-              // We'll just rebuild the layout – data will be re-fetched by intervals.
-              // But to be safe, we can re-render and re-fetch.
               renderHome();
-              // Re-fetch data for the new sections
               fetchNotes();
               fetchDiaryEntries();
               fetchReviews();
-              // Status grid is already present, but we need to re-bind the red string.
               setTimeout(updateRedString, 100);
             }
           } catch {}
@@ -873,7 +755,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · connected to API with share, quote, carousel, reorderable');
+    console.log('🕵️ Arsan\'s Archive · connected to API');
   </script>
 </body>
 </html>

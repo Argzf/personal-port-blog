@@ -26,8 +26,7 @@
         --board-bg: #1A1410; --board-grid: rgba(50,40,35,0.4);
         --card-bg: #28201B; --card-border: #3A322C;
         --ink: #EDE4D6; --ink-light: #A89888;
-        --red-string: #D4875E;
-        --accent: #D4875E;
+        --red-string: #D4875E; --accent: #D4875E;
       }
     }
     html { font-size: 16px; }
@@ -181,7 +180,7 @@
         document.getElementById('entryContainer').innerHTML = `
           ${entry.image_url ? `<img src="${escapeHtml(entry.image_url)}" style="max-width:100%; max-height:300px; object-fit:cover; border-radius:4px; margin-bottom:16px;" alt="" />` : ''}
           <div class="title">${escapeHtml(entry.title || 'Untitled')}</div>
-          <div class="meta">${formatTimeAgo(entry.timestamp)}${entry.link ? ` · <a href="${escapeHtml(entry.link)}" target="_blank" style="color:var(--accent); text-decoration:none;">🔗 Link</a>` : ''}</div>
+          <div class="meta">${formatTimeAgo(entry.timestamp)}${entry.link ? ` · <a href="${escapeHtml(entry.link)}" target="_blank" style="color:var(--accent); text-decoration:none;">🔗 Custom Link</a>` : ''}</div>
           <div class="body">${rendered}</div>
         `;
       } catch (e) {

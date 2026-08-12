@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -26,8 +25,7 @@
         --board-bg: #1A1410; --board-grid: rgba(50,40,35,0.4);
         --card-bg: #28201B; --card-border: #3A322C;
         --ink: #EDE4D6; --ink-light: #A89888;
-        --red-string: #D4875E;
-        --accent: #D4875E;
+        --red-string: #D4875E; --accent: #D4875E;
       }
     }
     html { font-size: 16px; }
@@ -168,19 +166,15 @@
         }
 
         container.innerHTML = entries.map(e => {
-          // Build preview: first 150 characters of plain text (strip HTML)
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = marked.parse(e.content || '');
-          const plainText = tempDiv.textContent || '';
-          const preview = plainText.slice(0, 150) + (plainText.length > 150 ? '...' : '');
+          const preview = (e.content || '').slice(0, 160) + ((e.content || '').length > 160 ? '...' : '');
 
           return `
             <div class="entry-preview">
               ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="image" alt="" />` : ''}
-              <div class="title"><a href="/entry/${e.id}">${escapeHtml(e.title || 'Untitled')}</a></div>
+              <div class="title"><a href="${escapeHtml(e.link) || `/entry/${e.id}`}">${escapeHtml(e.title || 'Untitled')}</a></div>
               <div class="meta">${formatTimeAgo(e.timestamp)}</div>
               <div class="summary">${escapeHtml(preview)}</div>
-              <a href="/entry/${e.id}" class="read-more">Read full entry →</a>
+              <a href="${escapeHtml(e.link) || `/entry/${e.id}`}" class="read-more">Read full entry →</a>
             </div>
           `;
         }).join('');
@@ -192,7 +186,6 @@
     }
 
     fetchEntries();
-    // Refresh every 60 seconds
     setInterval(fetchEntries, 60000);
   </script>
 </body>
