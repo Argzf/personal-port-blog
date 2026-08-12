@@ -480,48 +480,115 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    // ─── DIARY – REDESIGNED ─────────────────────────────────
+    // ─── DIARY – FULLY REWRITTEN AND FIXED ──────────────────
     // Opens the modal for creating or editing an entry.
-    // If 'entry' is provided, it's an edit; otherwise, it's a new entry.
     function openDiaryModal(entry = null) {
+      // Remove any existing modal first
+      const existing = document.getElementById('diaryModal');
+      if (existing) existing.remove();
+
       const isEdit = entry !== null;
       const data = entry || { id: null, title: '', content: '', link: '', image_url: '', scheduled_at: '' };
 
-      // Build the modal HTML
+      // Create modal container
       const modal = document.createElement('div');
-      modal.className = 'diary-modal';
       modal.id = 'diaryModal';
-      modal.innerHTML = `
-        <div class="diary-modal-content">
-          <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
-          <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
-          <textarea id="diaryContent" placeholder="Content (supports Markdown)..." rows="4">${escapeHtml(data.content)}</textarea>
-          <input type="text" id="diaryLink" placeholder="Custom link (optional)" value="${escapeHtml(data.link || '')}" />
-          <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url || '')}" />
-          <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" />
-          <div class="modal-actions">
-            <button class="btn" onclick="closeDiaryModal()">Cancel</button>
-            <button class="btn btn-accent" id="diarySaveBtn">${isEdit ? 'Update' : 'Save'}</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
+      modal.className = 'diary-modal';
 
-      // Bind the save button
-      const saveBtn = document.getElementById('diarySaveBtn');
+      // Create content div
+      const content = document.createElement('div');
+      content.className = 'diary-modal-content';
+
+      // Title
+      const titleEl = document.createElement('h2');
+      titleEl.textContent = isEdit ? '✎ Edit Entry' : '✏️ New Entry';
+      content.appendChild(titleEl);
+
+      // Fields
+      const fields = [
+        { type: 'text', id: 'diaryTitle', placeholder: 'Title', value: data.title },
+        { type: 'textarea', id: 'diaryContent', placeholder: 'Content (supports Markdown)…', value: data.content },
+        { type: 'text', id: 'diaryLink', placeholder: 'Custom link (optional)', value: data.link || '' },
+        { type: 'text', id: 'diaryImage', placeholder: 'Image URL (optional)', value: data.image_url || '' },
+        { type: 'datetime-local', id: 'diaryScheduled', value: data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : '' },
+      ];
+
+      fields.forEach(f => {
+        const el = f.type === 'textarea'
+          ? document.createElement('textarea')
+          : document.createElement('input');
+        if (f.type !== 'textarea') {
+          el.type = f.type;
+        }
+        el.id = f.id;
+        if (f.placeholder) el.placeholder = f.placeholder;
+        if (f.value !== undefined && f.value !== null) el.value = f.value;
+        if (f.type === 'textarea') el.rows = 4;
+        content.appendChild(el);
+      });
+
+      // Actions
+      const actions = document.createElement('div');
+      actions.className = 'modal-actions';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', closeDiaryModal);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'btn btn-accent';
+      saveBtn.textContent = isEdit ? 'Update' : 'Save';
+      // Use a direct click handler with a closure to capture the entry id
       saveBtn.addEventListener('click', function() {
-        saveDiaryEntry(entry ? entry.id : null);
+        // Gather data
+        const title = document.getElementById('diaryTitle').value.trim();
+        const contentVal = document.getElementById('diaryContent').value.trim();
+        const link = document.getElementById('diaryLink').value.trim();
+        const imageUrl = document.getElementById('diaryImage').value.trim();
+        const scheduled = document.getElementById('diaryScheduled').value;
+
+        if (!contentVal) {
+          showFlash('Content is required', 'error');
+          return;
+        }
+
+        const payload = {
+          title: title || '',
+          content: contentVal,
+          link: link || '',
+          image_url: imageUrl || '',
+          scheduled_at: scheduled ? new Date(scheduled).getTime() : null,
+        };
+
+        (async function() {
+          try {
+            if (isEdit && entry.id) {
+              await apiFetch(`/api/entries/${entry.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+              showFlash('Entry updated');
+            } else {
+              await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(payload) });
+              showFlash('Entry added');
+            }
+            closeDiaryModal();
+            await fetchEntries();
+            renderContent(); // refresh diary card
+          } catch (e) {
+            showFlash(e.message, 'error');
+          }
+        })();
       });
 
-      // Close on backdrop click
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) closeDiaryModal();
-      });
+      actions.appendChild(cancelBtn);
+      actions.appendChild(saveBtn);
+      content.appendChild(actions);
+      modal.appendChild(content);
+      document.body.appendChild(modal);
 
       // Focus the first input
       setTimeout(() => {
-        const titleInput = document.getElementById('diaryTitle');
-        if (titleInput) titleInput.focus();
+        const firstInput = document.getElementById('diaryTitle');
+        if (firstInput) firstInput.focus();
       }, 100);
     }
 
@@ -529,43 +596,6 @@
     function closeDiaryModal() {
       const modal = document.getElementById('diaryModal');
       if (modal) modal.remove();
-    }
-
-    // Saves the diary entry (create or update)
-    async function saveDiaryEntry(id) {
-      const title = document.getElementById('diaryTitle').value.trim();
-      const content = document.getElementById('diaryContent').value.trim();
-      const link = document.getElementById('diaryLink').value.trim();
-      const image_url = document.getElementById('diaryImage').value.trim();
-      const scheduled_at = document.getElementById('diaryScheduled').value;
-
-      if (!content) {
-        showFlash('Content is required', 'error');
-        return;
-      }
-
-      const data = {
-        title: title || '',
-        content: content,
-        link: link || '',
-        image_url: image_url || '',
-        scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null,
-      };
-
-      try {
-        if (id) {
-          await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-          showFlash('Entry updated');
-        } else {
-          await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
-          showFlash('Entry added');
-        }
-        closeDiaryModal();
-        await fetchEntries();
-        renderContent(); // refresh the diary card
-      } catch (e) {
-        showFlash(e.message, 'error');
-      }
     }
 
     // Deletes an entry
@@ -910,7 +940,6 @@
 
     // ─── DIARY CARD BUILDER ────────────────────────────────
     function buildDiaryCard() {
-      // Build the list of entries
       const diaryList = entries.length ? entries.map(e => `
         <div class="entry-item">
           <div class="entry-header">
@@ -1055,7 +1084,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · dashboard with redesigned diary');
+    console.log('🕵️ Arsan\'s Archive · dashboard with fully fixed diary');
   </script>
 </body>
 </html>
