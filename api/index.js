@@ -94,18 +94,16 @@ async function initDatabase() {
 initDatabase();
 
 // ─── Rate limiting ──────────────────────────────────────
-// Global limiter for all API routes (100 requests per minute)
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
   message: { error: 'Too many requests, please slow down.' },
   keyGenerator: (req) => getClientIp(req),
-  skip: (req) => req.path === '/api/public-entries' || req.path === '/api/public-reviews' || req.path === '/api/statuses' || req.path === '/api/public-notes', // public endpoints can have higher limits
+  skip: (req) => req.path === '/api/public-entries' || req.path === '/api/public-reviews' || req.path === '/api/statuses' || req.path === '/api/public-notes',
 });
 
 app.use('/api/', globalLimiter);
 
-// ─── Login limiter ──────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 3,
@@ -133,11 +131,15 @@ app.use((req, res, next) => {
     const userAgent = req.get('user-agent') || 'unknown';
     const timestamp = Date.now();
     if (req.path.startsWith('/api') || req.path === '/' || req.path === '/admin' || req.path === '/admin/') {
-      turso.execute({
-        sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, status_code, is_admin)
-              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        args: [ip, userAgent, req.path, req.method, timestamp, statusCode, req.user ? 1 : 0],
-      }).catch(e => console.error('Log insert error:', e));
+      (async () => {
+        try {
+          await turso.execute({
+            sql: `INSERT INTO request_logs (ip, user_agent, path, method, timestamp, status_code, is_admin)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            args: [ip, userAgent, req.path, req.method, timestamp, statusCode, req.user ? 1 : 0],
+          });
+        } catch (e) { console.error('Log insert error:', e); }
+      })();
     }
     oldSend.apply(res, arguments);
   };
@@ -164,7 +166,6 @@ function getClientIp(req) {
   return req.ip || 'unknown';
 }
 
-// ─── Blacklist ──────────────────────────────────────────
 async function isIpBlacklisted(ip) {
   const result = await turso.execute({
     sql: 'SELECT ip FROM blacklist WHERE ip = ?',
@@ -181,7 +182,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// ─── Silence log check ──────────────────────────────────
 async function shouldSilenceLog(ip, path) {
   const result = await turso.execute({
     sql: 'SELECT target FROM silence_logs WHERE target = ? OR target = ? OR target = ?',
