@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@400..600&family=Kalam:wght@300;400;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
+    /* ── same styles as before ── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg: #1A1410; --surface: #28201B; --surface-2: #3A322C; --border: #4A3F38;
@@ -111,10 +112,7 @@
       transition: 0.15s;
       font-family: var(--font-mono);
     }
-    .card .reorder-controls button:hover {
-      background: var(--surface-2);
-      color: var(--text);
-    }
+    .card .reorder-controls button:hover { background: var(--surface-2); color: var(--text); }
 
     .login-card { text-align: center; padding: 48px 28px; }
     .login-card .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
@@ -147,185 +145,87 @@
     }
     .status-item:hover { border-color: var(--accent-dim); }
     .status-item .label {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
+      display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
     }
     .status-item .current {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 2px;
-      min-height: 1.8rem;
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; min-height: 1.8rem;
     }
     .status-item .current .empty { color: var(--text-muted); font-weight: 400; opacity: 0.5; }
     .status-item .meta {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      margin-bottom: 10px;
-      min-height: 1.2rem;
+      font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-mono);
+      opacity: 0.6; margin-bottom: 10px; min-height: 1.2rem;
     }
     .status-item .actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 4px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
     }
     .status-item .actions button {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 2px 12px;
-      font-size: 0.65rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      font-family: var(--font);
-      line-height: 1.8;
+      background: transparent; border: 1px solid var(--border); border-radius: 30px;
+      padding: 2px 12px; font-size: 0.65rem; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s ease; font-family: var(--font); line-height: 1.8;
     }
-    .status-item .actions button:hover {
-      background: var(--surface-2);
-      border-color: var(--text-muted);
-      color: var(--text);
-    }
-    .status-item .actions button.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--bg);
-    }
+    .status-item .actions button:hover { background: var(--surface-2); border-color: var(--text-muted); color: var(--text); }
+    .status-item .actions button.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
     .status-item .clear-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.55rem;
-      cursor: pointer;
-      opacity: 0.3;
-      transition: opacity 0.2s;
-      font-family: var(--font);
-      padding: 2px 4px;
-      margin-left: 4px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.55rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s;
+      font-family: var(--font); padding: 2px 4px; margin-left: 4px;
     }
     .status-item .clear-btn:hover { opacity: 0.8; }
 
     .custom-status-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
     .custom-status-grid .field-group { display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; }
     .custom-status-grid .field-group label {
-      font-size: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 600;
-      font-family: var(--font-mono);
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); font-weight: 600; font-family: var(--font-mono);
     }
     .custom-status-grid .field-group select, .custom-status-grid .field-group input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.85rem;
-      font-family: var(--font);
-      outline: none;
-      width: 100%;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 12px; color: var(--text); font-size: 0.85rem; font-family: var(--font);
+      outline: none; width: 100%;
     }
     .custom-status-grid .field-group select:focus, .custom-status-grid .field-group input:focus { border-color: var(--accent); }
     .custom-status-grid .field-group .btn { padding: 8px 16px; font-size: 0.85rem; width: 100%; }
 
     .sticky-note-container {
-      background: #FCE9B6;
-      border: 1px solid #E8D09E;
-      border-radius: 6px;
-      padding: 14px 16px;
-      box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
-      transform: rotate(-0.5deg);
-      margin: 8px 0;
+      background: #FCE9B6; border: 1px solid #E8D09E; border-radius: 6px;
+      padding: 14px 16px; box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+      transform: rotate(-0.5deg); margin: 8px 0;
     }
     @media (prefers-color-scheme: dark) {
       .sticky-note-container { background: #3A3220; border-color: #4A3F30; }
     }
     .sticky-note-container .note-entry {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      font-family: var(--font-hand);
-      font-size: 0.9rem;
-      color: #1E1814;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-family: var(--font-hand); font-size: 0.9rem; color: #1E1814;
     }
     .sticky-note-container .note-entry:last-child { border-bottom: none; }
     .sticky-note-container .note-entry .note-content { flex: 1; }
     .sticky-note-container .note-entry .note-time {
-      font-size: 0.6rem;
-      color: #4A3F38;
-      font-family: var(--font-mono);
-      opacity: 0.6;
-      margin: 0 8px;
-      white-space: nowrap;
+      font-size: 0.6rem; color: #4A3F38; font-family: var(--font-mono);
+      opacity: 0.6; margin: 0 8px; white-space: nowrap;
     }
     .sticky-note-container .note-entry .note-actions button {
-      background: transparent;
-      border: none;
-      font-size: 0.6rem;
-      cursor: pointer;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      padding: 0 4px;
+      background: transparent; border: none; font-size: 0.6rem; cursor: pointer;
+      opacity: 0.4; transition: opacity 0.2s; padding: 0 4px;
     }
     .sticky-note-container .note-entry .note-actions .edit-btn { color: var(--accent); }
     .sticky-note-container .note-entry .note-actions .delete-btn { color: var(--red); }
     .sticky-note-container .note-entry .note-actions button:hover { opacity: 1; }
 
-    .entry-form input, .entry-form textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: var(--font);
-      outline: none;
-      margin-bottom: 8px;
-    }
-    .entry-form input:focus, .entry-form textarea:focus { border-color: var(--accent); }
-    .entry-form textarea { resize: vertical; min-height: 80px; }
-    .entry-form .submit-row {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
     .entry-list { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
     .entry-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;
     }
     .entry-item .entry-header { display: flex; justify-content: space-between; align-items: flex-start; }
     .entry-item .entry-title { font-weight: 600; font-size: 1rem; }
     .entry-item .entry-content { font-size: 0.9rem; }
     .entry-item .entry-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
+      display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem;
+      color: var(--text-muted); font-family: var(--font-mono);
     }
     .entry-item .entry-meta a { color: var(--accent); text-decoration: none; }
     .entry-item .entry-meta a:hover { text-decoration: underline; }
@@ -334,15 +234,8 @@
 
     .flex-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .flex-row input {
-      flex: 1;
-      min-width: 120px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
+      flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 0.9rem; outline: none;
     }
     .flex-row input:focus { border-color: var(--accent); }
 
@@ -350,25 +243,41 @@
     .ip-link:hover { text-decoration: underline; }
 
     .flash {
-      padding: 10px 16px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
+      padding: 10px 16px; border-radius: 6px; margin-bottom: 16px;
+      font-size: 0.85rem; border: 1px solid transparent;
     }
     .flash-success { background: rgba(126,231,135,0.12); border-color: var(--green); color: var(--green); }
     .flash-error { background: rgba(247,120,122,0.12); border-color: var(--red); color: var(--red); }
 
     .footer {
-      margin-top: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      opacity: 0.4;
-      letter-spacing: 0.04em;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
+      margin-top: 16px; text-align: center; color: var(--text-muted);
+      font-size: 0.65rem; font-family: var(--font-mono); opacity: 0.4;
+      letter-spacing: 0.04em; border-top: 1px solid var(--border); padding-top: 16px;
+    }
+
+    /* Diary modal */
+    .diary-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .diary-modal-content {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+    }
+    .diary-modal-content h2 {
+      font-family: var(--font-serif); font-weight: 400; margin-bottom: 16px;
+    }
+    .diary-modal-content input,
+    .diary-modal-content textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px; color: var(--text);
+      font-size: 0.9rem; font-family: var(--font); outline: none; margin-bottom: 8px;
+    }
+    .diary-modal-content input:focus,
+    .diary-modal-content textarea:focus { border-color: var(--accent); }
+    .diary-modal-content textarea { resize: vertical; min-height: 100px; }
+    .diary-modal-content .modal-actions {
+      display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px;
     }
 
     @media (max-width: 600px) {
@@ -383,6 +292,7 @@
       .custom-status-grid .field-group { flex: 1 1 100%; }
       .custom-status-grid .field-group .btn { width: 100%; }
       .card .reorder-controls { position: static; justify-content: flex-end; margin-top: 8px; }
+      .diary-modal-content { padding: 16px; }
     }
   </style>
 </head>
@@ -570,78 +480,105 @@
       } catch (e) { showFlash(e.message, 'error'); }
     }
 
-    // ─── Diary operations ──────────────────────────────────
-    function openEntryEditor(entry = null) {
+    // ─── DIARY – REDESIGNED ─────────────────────────────────
+    // Opens the modal for creating or editing an entry.
+    // If 'entry' is provided, it's an edit; otherwise, it's a new entry.
+    function openDiaryModal(entry = null) {
       const isEdit = entry !== null;
-      const data = entry || { title: '', content: '', link: '', image_url: '', scheduled_at: '' };
-      const html = `
-        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px;">
-          <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto;">
-            <h2 style="font-family:var(--font-serif); font-weight:400; margin-bottom:16px;">${isEdit ? 'Edit Entry' : 'New Entry'}</h2>
-            <input type="text" id="entryTitle" placeholder="Title" value="${escapeHtml(data.title)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
-            <textarea id="entryContent" placeholder="Content..." style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; min-height:100px; margin-bottom:8px; outline:none; resize:vertical;">${escapeHtml(data.content)}</textarea>
-            <input type="text" id="entryLink" placeholder="Custom link (optional)" value="${escapeHtml(data.link)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
-            <input type="text" id="entryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
-            <input type="datetime-local" id="entryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-size:0.9rem; margin-bottom:8px; outline:none;" />
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-              <button class="btn" onclick="document.querySelector('#entryEditor').remove()">Cancel</button>
-              <button class="btn btn-accent" id="saveEntryBtn" onclick="window.saveEntry(${isEdit ? entry.id : 'null'})">Save</button>
-            </div>
+      const data = entry || { id: null, title: '', content: '', link: '', image_url: '', scheduled_at: '' };
+
+      // Build the modal HTML
+      const modal = document.createElement('div');
+      modal.className = 'diary-modal';
+      modal.id = 'diaryModal';
+      modal.innerHTML = `
+        <div class="diary-modal-content">
+          <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
+          <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
+          <textarea id="diaryContent" placeholder="Content (supports Markdown)..." rows="4">${escapeHtml(data.content)}</textarea>
+          <input type="text" id="diaryLink" placeholder="Custom link (optional)" value="${escapeHtml(data.link || '')}" />
+          <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url || '')}" />
+          <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0,16) : ''}" />
+          <div class="modal-actions">
+            <button class="btn" onclick="closeDiaryModal()">Cancel</button>
+            <button class="btn btn-accent" id="diarySaveBtn">${isEdit ? 'Update' : 'Save'}</button>
           </div>
         </div>
       `;
-      const div = document.createElement('div');
-      div.id = 'entryEditor';
-      div.innerHTML = html;
-      document.body.appendChild(div);
+      document.body.appendChild(modal);
+
+      // Bind the save button
+      const saveBtn = document.getElementById('diarySaveBtn');
+      saveBtn.addEventListener('click', function() {
+        saveDiaryEntry(entry ? entry.id : null);
+      });
+
+      // Close on backdrop click
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeDiaryModal();
+      });
+
+      // Focus the first input
+      setTimeout(() => {
+        const titleInput = document.getElementById('diaryTitle');
+        if (titleInput) titleInput.focus();
+      }, 100);
     }
 
-    // The actual save function
-    async function saveEntry(id) {
-      console.log('[saveEntry] called with id:', id);
-      const title = document.getElementById('entryTitle').value.trim();
-      const content = document.getElementById('entryContent').value.trim();
-      const link = document.getElementById('entryLink').value.trim();
-      const image_url = document.getElementById('entryImage').value.trim();
-      const scheduled_at = document.getElementById('entryScheduled').value;
-      console.log('[saveEntry] data:', { title, content, link, image_url, scheduled_at });
+    // Closes the modal
+    function closeDiaryModal() {
+      const modal = document.getElementById('diaryModal');
+      if (modal) modal.remove();
+    }
+
+    // Saves the diary entry (create or update)
+    async function saveDiaryEntry(id) {
+      const title = document.getElementById('diaryTitle').value.trim();
+      const content = document.getElementById('diaryContent').value.trim();
+      const link = document.getElementById('diaryLink').value.trim();
+      const image_url = document.getElementById('diaryImage').value.trim();
+      const scheduled_at = document.getElementById('diaryScheduled').value;
+
       if (!content) {
         showFlash('Content is required', 'error');
         return;
       }
-      const data = { title, content, link, image_url, scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null };
+
+      const data = {
+        title: title || '',
+        content: content,
+        link: link || '',
+        image_url: image_url || '',
+        scheduled_at: scheduled_at ? new Date(scheduled_at).getTime() : null,
+      };
+
       try {
         if (id) {
-          await updateEntry(id, data);
+          await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+          showFlash('Entry updated');
         } else {
-          await createEntry(data);
+          await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
+          showFlash('Entry added');
         }
-        document.getElementById('entryEditor').remove();
+        closeDiaryModal();
+        await fetchEntries();
+        renderContent(); // refresh the diary card
       } catch (e) {
-        console.error('[saveEntry] error:', e);
         showFlash(e.message, 'error');
       }
     }
-    // Expose globally
-    window.saveEntry = saveEntry;
 
-    async function createEntry(data) {
-      await apiFetch('/api/entries', { method: 'POST', body: JSON.stringify(data) });
-      await fetchEntries();
-      showFlash('Entry added');
-    }
-    async function updateEntry(id, data) {
-      await apiFetch(`/api/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-      await fetchEntries();
-      showFlash('Entry updated');
-    }
-    async function deleteEntry(id) {
+    // Deletes an entry
+    async function deleteDiaryEntry(id) {
       if (!confirm('Delete this entry?')) return;
       try {
         await apiFetch(`/api/entries/${id}`, { method: 'DELETE' });
         await fetchEntries();
         showFlash('Entry deleted');
-      } catch (e) { showFlash(e.message, 'error'); }
+        renderContent();
+      } catch (e) {
+        showFlash(e.message, 'error');
+      }
     }
 
     // ─── Blacklist ──────────────────────────────────────────
@@ -971,7 +908,9 @@
       `;
     }
 
+    // ─── DIARY CARD BUILDER ────────────────────────────────
     function buildDiaryCard() {
+      // Build the list of entries
       const diaryList = entries.length ? entries.map(e => `
         <div class="entry-item">
           <div class="entry-header">
@@ -988,8 +927,8 @@
             <span>${formatTimeAgo(e.timestamp)}</span>
           </div>
           <div class="entry-actions">
-            <button class="btn btn-sm" onclick="openEntryEditor(${JSON.stringify(e)})">✎ Edit</button>
-            <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteEntry(${e.id})">✕ Delete</button>
+            <button class="btn btn-sm" onclick="openDiaryModal(${JSON.stringify(e)})">✎ Edit</button>
+            <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteDiaryEntry(${e.id})">✕ Delete</button>
           </div>
         </div>
       `).join('') : `<div class="empty-entries">No diary entries.</div>`;
@@ -997,7 +936,7 @@
       return `
         <div class="card">
           <h2>📖 Diary Entries</h2>
-          <button class="btn btn-accent" onclick="openEntryEditor()" style="margin-bottom:12px;">+ New Entry</button>
+          <button class="btn btn-accent" onclick="openDiaryModal()" style="margin-bottom:12px;">+ New Entry</button>
           <div class="entry-list">${diaryList}</div>
         </div>
       `;
@@ -1116,7 +1055,7 @@
     }
 
     init();
-    console.log('🕵️ Arsan\'s Archive · dashboard with all features');
+    console.log('🕵️ Arsan\'s Archive · dashboard with redesigned diary');
   </script>
 </body>
 </html>
