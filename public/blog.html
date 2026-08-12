@@ -147,6 +147,7 @@
     }
 
     function escapeHtml(text) {
+      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
@@ -167,14 +168,16 @@
 
         container.innerHTML = entries.map(e => {
           const preview = (e.content || '').slice(0, 160) + ((e.content || '').length > 160 ? '...' : '');
+          // Use custom link if set, otherwise /entry/:id
+          const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
 
           return `
             <div class="entry-preview">
               ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="image" alt="" />` : ''}
-              <div class="title"><a href="${escapeHtml(e.link) || `/entry/${e.id}`}">${escapeHtml(e.title || 'Untitled')}</a></div>
+              <div class="title"><a href="${escapeHtml(entryLink)}">${escapeHtml(e.title || 'Untitled')}</a></div>
               <div class="meta">${formatTimeAgo(e.timestamp)}</div>
               <div class="summary">${escapeHtml(preview)}</div>
-              <a href="${escapeHtml(e.link) || `/entry/${e.id}`}" class="read-more">Read full entry →</a>
+              <a href="${escapeHtml(entryLink)}" class="read-more">Read full entry →</a>
             </div>
           `;
         }).join('');

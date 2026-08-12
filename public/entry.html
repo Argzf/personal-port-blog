@@ -147,6 +147,7 @@
     }
 
     function escapeHtml(text) {
+      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
@@ -177,10 +178,15 @@
 
         const rendered = marked.parse(entry.content || '');
 
+        // If the entry has a custom link, show it; otherwise just show the date
+        const customLinkHtml = entry.link && entry.link.trim() !== ''
+          ? ` · <a href="${escapeHtml(entry.link)}" target="_blank" style="color:var(--accent); text-decoration:none;">🔗 Custom Link</a>`
+          : '';
+
         document.getElementById('entryContainer').innerHTML = `
           ${entry.image_url ? `<img src="${escapeHtml(entry.image_url)}" style="max-width:100%; max-height:300px; object-fit:cover; border-radius:4px; margin-bottom:16px;" alt="" />` : ''}
           <div class="title">${escapeHtml(entry.title || 'Untitled')}</div>
-          <div class="meta">${formatTimeAgo(entry.timestamp)}${entry.link ? ` · <a href="${escapeHtml(entry.link)}" target="_blank" style="color:var(--accent); text-decoration:none;">🔗 Custom Link</a>` : ''}</div>
+          <div class="meta">${formatTimeAgo(entry.timestamp)}${customLinkHtml}</div>
           <div class="body">${rendered}</div>
         `;
       } catch (e) {

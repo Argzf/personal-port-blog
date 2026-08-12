@@ -395,6 +395,10 @@
       color: #1E1814;
     }
 
+    @media (prefers-color-scheme: dark) {
+      .sticky-note-container .note-entry { color: #EDE4D6; }
+    }
+
     .sticky-note-container .note-entry:last-child { border-bottom: none; }
 
     .sticky-note-container .note-entry .note-content { flex: 1; }
@@ -406,6 +410,10 @@
       opacity: 0.6;
       margin: 0 8px;
       white-space: nowrap;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .sticky-note-container .note-entry .note-time { color: #A89888; }
     }
 
     .sticky-note-container .note-entry .note-actions button {
@@ -443,6 +451,8 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .entry-item .entry-title { font-weight: 600; font-size: 1rem; }
@@ -487,7 +497,8 @@
       margin-bottom: 12px;
     }
 
-    .flex-row input {
+    .flex-row input,
+    .flex-row select {
       flex: 1;
       min-width: 120px;
       background: var(--bg);
@@ -497,9 +508,11 @@
       color: var(--text);
       font-size: 0.9rem;
       outline: none;
+      font-family: var(--font);
     }
 
-    .flex-row input:focus { border-color: var(--accent); }
+    .flex-row input:focus,
+    .flex-row select:focus { border-color: var(--accent); }
 
     .ip-link {
       color: var(--accent);
@@ -589,6 +602,15 @@
       margin-top: 8px;
     }
 
+    .empty-notes,
+    .empty-entries {
+      color: var(--text-muted);
+      opacity: 0.5;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 0.9rem;
+    }
+
     @media (max-width: 600px) {
       .header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .header .user-area { width: 100%; justify-content: flex-start; }
@@ -602,6 +624,7 @@
       .custom-status-grid .field-group .btn { width: 100%; }
       .card .reorder-controls { position: static; justify-content: flex-end; margin-top: 8px; }
       .diary-modal-content { padding: 16px; }
+      .entry-item .entry-header { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -655,6 +678,13 @@
     function getUrl(endpoint) {
       const sep = endpoint.includes('?') ? '&' : '?';
       return `${endpoint}${sep}_=${Date.now()}`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     // ─── API CALLS ──────────────────────────────────────────
@@ -851,7 +881,7 @@
             <h2>${isEdit ? '✎ Edit Entry' : '✏️ New Entry'}</h2>
             <input type="text" id="diaryTitle" placeholder="Title" value="${escapeHtml(data.title)}" />
             <textarea id="diaryContent" placeholder="Content (supports Markdown)…">${escapeHtml(data.content)}</textarea>
-            <input type="text" id="diaryLink" placeholder="Custom link (optional)" value="${escapeHtml(data.link)}" />
+            <input type="text" id="diaryLink" placeholder="Custom link (optional) — overrides default /entry/:id" value="${escapeHtml(data.link)}" />
             <input type="text" id="diaryImage" placeholder="Image URL (optional)" value="${escapeHtml(data.image_url)}" />
             <input type="datetime-local" id="diaryScheduled" value="${data.scheduled_at ? new Date(data.scheduled_at).toISOString().slice(0, 16) : ''}" />
             <div class="modal-actions">
@@ -1214,27 +1244,33 @@
     }
 
     function buildDiaryCard() {
-      const diaryList = entries.length ? entries.map(e => `
-        <div class="entry-item">
-          <div class="entry-header">
-            <div class="entry-title">${escapeHtml(e.title) || 'Untitled'}</div>
+      const diaryList = entries.length ? entries.map(e => {
+        // Determine the correct link: custom link if set, otherwise /entry/:id
+        const entryLink = e.link && e.link.trim() !== '' ? e.link : `/entry/${e.id}`;
+        const linkLabel = e.link && e.link.trim() !== '' ? '🔗 Custom Link' : '🔗 Permalink';
+
+        return `
+          <div class="entry-item">
+            <div class="entry-header">
+              <div class="entry-title">${escapeHtml(e.title) || 'Untitled'}</div>
+              <div class="entry-meta">
+                ${e.scheduled_at && e.scheduled_at > Date.now() ? '⏳ Scheduled' : ''}
+                ${e.published === 0 ? '📝 Draft' : ''}
+              </div>
+            </div>
+            ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="entry-image" alt="" />` : ''}
+            <div class="entry-content">${escapeHtml(e.content)}</div>
             <div class="entry-meta">
-              ${e.scheduled_at && e.scheduled_at > Date.now() ? '⏳ Scheduled' : ''}
-              ${e.published === 0 ? '📝 Draft' : ''}
+              <a href="${escapeHtml(entryLink)}" target="_blank">${linkLabel}</a>
+              <span>${formatTimeAgo(e.timestamp)}</span>
+            </div>
+            <div class="entry-actions">
+              <button class="btn btn-sm" onclick="openDiaryModal(${JSON.stringify(e)})">✎ Edit</button>
+              <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteDiaryEntry(${e.id})">✕ Delete</button>
             </div>
           </div>
-          ${e.image_url ? `<img src="${escapeHtml(e.image_url)}" class="entry-image" alt="" />` : ''}
-          <div class="entry-content">${escapeHtml(e.content)}</div>
-          <div class="entry-meta">
-            ${e.link ? `<a href="${escapeHtml(e.link)}" target="_blank">🔗 Custom Link</a>` : `<a href="/entry/${e.id}">🔗 Permalink</a>`}
-            <span>${formatTimeAgo(e.timestamp)}</span>
-          </div>
-          <div class="entry-actions">
-            <button class="btn btn-sm" onclick="openDiaryModal(${JSON.stringify(e)})">✎ Edit</button>
-            <button class="btn btn-sm" style="border-color:var(--red); color:var(--red);" onclick="deleteDiaryEntry(${e.id})">✕ Delete</button>
-          </div>
-        </div>
-      `).join('') : `<div class="empty-entries">No diary entries.</div>`;
+        `;
+      }).join('') : `<div class="empty-entries">No diary entries.</div>`;
 
       return `
         <div class="card">
@@ -1247,7 +1283,7 @@
 
     function buildReviewsCard() {
       const reviewsList = reviews.length ? reviews.map(r => `
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
           <div>
             <strong>${escapeHtml(r.name)}</strong>
             <span style="color:var(--text-muted); font-size:0.9rem;">${escapeHtml(r.message)}</span>
@@ -1274,7 +1310,7 @@
 
     function buildBlacklistCard() {
       const blacklistItems = blacklist.length ? blacklist.map(b => `
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
           <div>
             <a href="https://whatismyipaddress.com/ip/${b.ip}" target="_blank" class="ip-link">${b.ip}</a>
             ${b.reason ? ' — ' + escapeHtml(b.reason) : ''}
@@ -1301,7 +1337,7 @@
 
     function buildSilenceCard() {
       const silencedItems = silenced.length ? silenced.map(s => `
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <span>${s.type === 'ip' ? '🌐' : '📄'} ${escapeHtml(s.target)}</span>
           <div>
             <span style="font-size:0.65rem; color:var(--text-muted);">${formatTimeAgo(s.created_at)}</span>
@@ -1333,12 +1369,6 @@
           <p style="font-size:0.7rem; color:var(--text-muted); opacity:0.5;">All admin actions are logged and sent to Telegram.</p>
         </div>
       `;
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     }
 
     // ─── INIT ────────────────────────────────────────────────
